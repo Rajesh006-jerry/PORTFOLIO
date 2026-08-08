@@ -107,24 +107,90 @@ ul { list-style: none; }
   opacity: 0;
   width: max-content;
 }
-    @media (max-width: 767px) {
-  .hero-subtitle {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -1.5rem;
+   /* =========================================================
+   MOBILE HERO — FINAL FIX
+   Desktop remains completely unchanged
+   ========================================================= */
 
-    width: 100%;
-    max-width: none;
+@media screen and (max-width: 767px) {
 
-    text-align: center;
-    transform: none;
+  /* Full mobile-width hero container */
+  .hero-center {
+    width: 100vw !important;
+    max-width: 100vw !important;
 
-    font-size: 0.9rem;
-    line-height: 1.4;
-    white-space: normal;
+    left: 50% !important;
+
+    align-items: center !important;
+
+    transform: translate(-50%, -50%) !important;
   }
-    }
+
+  /* Portfolio title */
+  .hero-title {
+    width: 100% !important;
+    min-width: 0 !important;
+
+    padding-right: 0 !important;
+
+    text-align: center !important;
+  }
+
+  /* AI PRODUCT MANAGER container */
+  .hero-subtitle {
+    position: absolute !important;
+
+    left: 50% !important;
+    right: auto !important;
+
+    top: 100% !important;
+    bottom: auto !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    text-align: center !important;
+
+    /*
+      IMPORTANT:
+      JS changes this to translate(-50%, 0),
+      so !important keeps it centered.
+    */
+    transform: translate(-50%, 0) !important;
+
+    font-size: 0.9rem !important;
+    line-height: 1.35 !important;
+
+    white-space: normal !important;
+
+    z-index: 10 !important;
+  }
+
+  /* Remove the 350px desktop positioning */
+  .hero-subtitle-bold {
+    display: block !important;
+
+    margin: 10px 0 0 0 !important;
+
+    width: 100% !important;
+
+    text-align: center !important;
+
+    font-size: 0.9rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Hide unused italic span on mobile */
+  .hero-subtitle-italic {
+    display: none !important;
+
+    margin: 0 !important;
+  }
+
+}
 .hero-subtitle-bold { font-weight: 700; margin-left: 350px; margin-top: 200px;  display: inline-block;}
 .hero-subtitle-italic { font-weight: 300; font-style: italic; color: #d1d5db; margin-left: 25px;  margin-bottom: 5000px;}
 
