@@ -1931,56 +1931,197 @@ ul { list-style: none; }
 
 
 /* =========================================================
-   MOBILE VISITING CARD — FINAL FIX
+   FINAL MOBILE VISITING CARD
    ========================================================= */
 
-/* =========================================================
-   MOBILE
-   ========================================================= */
+@media screen and (max-width: 700px) {
 
-@media (max-width: 700px) {
-
+  /* CARD SECTION */
   .footer-card-section {
-    padding: 50px 18px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 45px 18px 60px !important;
   }
 
+  /* MAIN CARD */
   .footer-card {
-    min-height: auto;
-    padding: 28px;
-    border-radius: 22px;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+
+    margin: 0 auto !important;
+    padding: 28px !important;
+
+    box-sizing: border-box;
+
+    border-radius: 24px;
   }
+
+
+  /* ==============================
+     TOP
+     ============================== */
+
+  .card-top {
+    width: 100% !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 10px;
+  }
+
+  .card-badge {
+    width: calc(100% - 95px) !important;
+    max-width: calc(100% - 95px) !important;
+
+    box-sizing: border-box;
+
+    padding: 8px 14px !important;
+
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+
+    letter-spacing: 0.15em;
+
+    white-space: normal !important;
+    overflow: hidden;
+
+    text-align: left;
+  }
+
+  .card-logo {
+    width: 78px !important;
+    height: 78px !important;
+
+    min-width: 78px !important;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+
+  /* ==============================
+     MAIN CONTENT
+     ============================== */
 
   .card-main {
-    margin-top: 60px;
+    width: 100% !important;
+
+    margin-top: 52px !important;
+  }
+
+  .card-eyebrow {
+    margin: 0 0 18px 0 !important;
+
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+
+    letter-spacing: 0.18em;
   }
 
   .card-name {
-    font-size: 18vw;
+    width: 100% !important;
+
+    margin: 0 !important;
+
+    font-size: 18vw !important;
+    line-height: 0.9 !important;
+
+    letter-spacing: -0.065em;
+
+    white-space: nowrap !important;
   }
 
   .card-description {
-    font-size: 13px;
+    width: 100% !important;
+    max-width: 100% !important;
+
+    margin: 30px 0 0 0 !important;
+
+    font-size: 13px !important;
+    line-height: 1.8 !important;
   }
 
-  .card-contact {
-    grid-template-columns: 1fr;
-    gap: 25px;
-    margin-top: 45px;
-  }
+
+  /* ==============================
+     BOTTOM
+     ============================== */
 
   .card-bottom {
-    flex-direction: column;
-    align-items: flex-start;
+    width: 100% !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+
+    align-items: stretch !important;
+
+    gap: 0 !important;
+
+    margin-top: 42px !important;
+    padding-top: 25px !important;
+
+    border-top: 1px solid rgba(255,255,255,0.1);
   }
+
+
+  /* GITHUB + LINKEDIN */
 
   .card-socials {
-    width: 100%;
-    justify-content: space-between;
+    width: 100% !important;
+
+    display: flex !important;
+
+    flex-direction: row !important;
+
+    align-items: center !important;
+    justify-content: space-between !important;
+
+    gap: 15px;
   }
 
+  .card-socials a {
+    font-size: 13px !important;
+  }
+
+
+  /* COPYRIGHT */
+
+  .footer-copyright {
+    width: 100% !important;
+
+    margin-top: 42px !important;
+
+    font-size: 9px !important;
+    line-height: 1.5 !important;
+
+    letter-spacing: 0.06em !important;
+
+    text-align: left !important;
+  }
+
+
+  /* CONNECT BUTTON */
+
   .card-connect {
-    width: 100%;
-    justify-content: center;
+    width: 100% !important;
+
+    min-height: 58px !important;
+
+    margin-top: 32px !important;
+
+    padding: 14px 20px !important;
+
+    box-sizing: border-box;
+
+    display: flex !important;
+
+    align-items: center !important;
+    justify-content: center !important;
+
+    gap: 12px;
   }
 
 }
