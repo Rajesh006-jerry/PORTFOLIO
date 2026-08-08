@@ -328,8 +328,44 @@ ul { list-style: none; }
     padding: 0 3rem;
   }
 }
+/* =========================================================
+   RESUME / CV BUTTON
+   ========================================================= */
 
+.navbar-resume {
+  padding: 9px 16px !important;
+  border: 1px solid #00E5FF !important;
+  border-radius: 999px;
+  color: #00E5FF !important;
+  background: transparent;
+  font-weight: 700 !important;
+  transition: all 0.3s ease !important;
+  white-space: nowrap;
+}
 
+.navbar-resume::after {
+  display: none !important;
+}
+
+.navbar-resume:hover {
+  background: #00E5FF;
+  color: #000 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 229, 255, 0.2);
+}
+.mobile-resume {
+  color: #00E5FF !important;
+  border: 1px solid #00E5FF;
+  padding: 12px 24px;
+  border-radius: 999px;
+  font-size: 1rem !important;
+  margin-top: 0.5rem;
+}
+
+.mobile-resume:hover {
+  background: #00E5FF;
+  color: #000 !important;
+}
 /* When navbar is visible */
 
 .navbar.show {
@@ -2137,6 +2173,7 @@ ul { list-style: none; }
         <a href="#service">Experience</a>
         <a href="#project">Project</a>
         <a href="#contact">Contact</a>
+         <a href="Resume.pdf" target="_blank" class="navbar-resume">Resume / CV</a>
       </div>
 
       <div class="navbar-mobile-icon" id="mobileMenuIcon">
@@ -2156,6 +2193,7 @@ ul { list-style: none; }
         <a href="#service">Experience</a>
         <a href="#project">Project</a>
         <a href="#contact">Contact</a>
+        <a href="Resume.pdf" target="_blank" class="mobile-resume">Resume / CV</a>
       </div>
     </div>
 
