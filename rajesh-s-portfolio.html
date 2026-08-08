@@ -332,34 +332,64 @@ ul { list-style: none; }
    RESUME / CV BUTTON
    ========================================================= */
 
+/* =========================================================
+   DOWNLOAD CV BUTTON
+   ========================================================= */
+
 .navbar-resume {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 7px;
+
   padding: 9px 16px !important;
+
   border: 1px solid #00E5FF !important;
   border-radius: 999px;
+
   color: #00E5FF !important;
   background: transparent;
+
+  font-size: 0.75rem !important;
   font-weight: 700 !important;
-  transition: all 0.3s ease !important;
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+
   white-space: nowrap;
+
+  transition: all 0.3s ease !important;
 }
 
 .navbar-resume::after {
   display: none !important;
 }
 
+.navbar-resume span {
+  font-size: 1rem;
+  line-height: 1;
+}
+
 .navbar-resume:hover {
   background: #00E5FF;
   color: #000 !important;
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 229, 255, 0.2);
+  box-shadow: 0 8px 25px rgba(0, 229, 255, 0.25);
 }
 .mobile-resume {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+
   color: #00E5FF !important;
   border: 1px solid #00E5FF;
+
   padding: 12px 24px;
   border-radius: 999px;
+
   font-size: 1rem !important;
-  margin-top: 0.5rem;
+  font-weight: 700;
+
+  margin-top: 10px;
 }
 
 .mobile-resume:hover {
@@ -2173,7 +2203,8 @@ ul { list-style: none; }
         <a href="#service">Experience</a>
         <a href="#project">Project</a>
         <a href="#contact">Contact</a>
-         <a href="Resume.pdf" target="_blank" class="navbar-resume">Resume / CV</a>
+        <a href="Resume.pdf" download="Rajesh_S_Resume.pdf" class="navbar-resume"><span>↓</span>Resume / CV</a>
+         
       </div>
 
       <div class="navbar-mobile-icon" id="mobileMenuIcon">
@@ -2193,7 +2224,7 @@ ul { list-style: none; }
         <a href="#service">Experience</a>
         <a href="#project">Project</a>
         <a href="#contact">Contact</a>
-        <a href="Resume.pdf" target="_blank" class="mobile-resume">Resume / CV</a>
+        <a href="Resume.pdf" download="Rajesh_S_Resume.pdf" class="mobile-resume">↓ Download CV</a>
       </div>
     </div>
 
