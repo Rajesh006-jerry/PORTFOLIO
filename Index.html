@@ -1841,14 +1841,16 @@
       /* ==========================================================================
    CONTACT
    ========================================================================== */
-      .contact {
-        position: relative;
-        min-height: 70vh;
-        display: flex;
-        align-items: center;
-        overflow: hidden;
-        clip-path: inset(0);
-      }
+     .contact {
+  position: relative;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  clip-path: inset(0);
+  width: 100%;          /* ← add */
+  background: #000;     /* ← add (shows if the video is slow to load) */
+}
 
       .contact-video {
         position: fixed;
@@ -1869,28 +1871,28 @@
       }
 
       .contact-inner {
-        width: 100%;
-        max-width: 80rem;
-        margin: 0 auto;
-        padding: 3rem 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 5rem;
-        position: relative;
-        z-index: 1;
-      }
-      @media (min-width: 768px) {
-        .contact-inner {
-          padding: 3rem 4rem;
-        }
-      }
-      @media (min-width: 1024px) {
-        .contact-inner {
-          flex-direction: row;
-          gap: 8rem;
-        }
-      }
-
+  width: 100%;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding-block: 6rem;      /* top + bottom */
+  padding-inline: 1.5rem;   /* left + right (mobile) */
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+  position: relative;
+  z-index: 1;
+}
+@media (min-width: 768px) {
+  .contact-inner {
+    padding-inline: 4rem;
+  }
+}
+@media (min-width: 1024px) {
+  .contact-inner {
+    flex-direction: row;
+    gap: 8rem;
+  }
+}
       .contact-info {
         width: 100%;
         display: flex;
@@ -2072,13 +2074,14 @@
         transition: background 0.2s;
       }
       .contact-bg-video {
-        position: absolute;
-        inset: 0;
-        width: 90%;
-        height: 100%;
-        object-fit: cover;
-        z-index: 0;
-      }
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  z-index: 0;
+}
       .contact-submit:hover {
         background: #e5e7eb;
       }
