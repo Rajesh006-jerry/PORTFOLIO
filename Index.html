@@ -1519,9 +1519,9 @@
       }
       .project-item {
         display: grid;
-        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.9fr);
-        align-items: center; /* image card keeps its own height, centred against the text */
-        gap: clamp(2rem, 5.5vw, 5rem);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* equal split */
+        align-items: center;
+        gap: clamp(2rem, 4vw, 4rem);
         width: 100%;
       }
       .project-item.reverse {
@@ -1597,7 +1597,7 @@
         text-transform: uppercase;
       }
       .project-desc {
-        max-width: 600px;
+        max-width: none; /* was 760px */
         margin: 0 0 2rem;
         color: var(--e-muted);
         font-size: 0.95rem;
@@ -1631,7 +1631,7 @@
           margin-bottom: 5rem;
         }
         .project-item {
-          grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
           gap: 2rem;
         }
         .project-title {
