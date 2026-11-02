@@ -1411,3 +1411,198 @@ html[data-theme="light"] .rc-in::before {
     grid-column: auto;
   }
 }
+
+/* ==========================================================================
+   PROJECT IMAGE CARD — neat gold-framed browser window
+   (CSS only: works with the existing .project-image-col > img markup)
+   ========================================================================== */
+.projects-list .project-item .project-image-col {
+  --pc-dot: radial-gradient(circle, #e6b93c 0 100%);
+  position: relative;
+  padding: 0 0.8rem 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background:
+    linear-gradient(165deg, #1a2030 0%, #0d111a 100%) padding-box,
+    var(--rc-gold) border-box;
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: none;
+}
+/* title bar: three gold dots */
+.projects-list .project-item .project-image-col::before {
+  content: "";
+  display: block;
+  height: 2.3rem;
+  background:
+    radial-gradient(
+      circle at 1.15rem 50%,
+      #fff1a8 0 0.24rem,
+      transparent 0.27rem
+    ),
+    radial-gradient(
+      circle at 1.95rem 50%,
+      #e6b93c 0 0.24rem,
+      transparent 0.27rem
+    ),
+    radial-gradient(
+      circle at 2.75rem 50%,
+      #b8860b 0 0.24rem,
+      transparent 0.27rem
+    );
+}
+/* title bar: address pill */
+.projects-list .project-item .project-image-col::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(54%, 19rem);
+  height: 1.3rem;
+  z-index: 1;
+  border-radius: 99px;
+  border: 1px solid rgba(230, 185, 60, 0.3);
+  background:
+    radial-gradient(
+      circle at 0.8rem 50%,
+      #e6b93c 0 0.16rem,
+      transparent 0.18rem
+    ),
+    rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  pointer-events: none;
+}
+.projects-list .project-item .project-image-col .project-image {
+  border-radius: 10px;
+  border: 1px solid rgba(230, 185, 60, 0.35);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  transform: none;
+}
+.projects-list .project-item:hover .project-image-col {
+  border-color: transparent;
+  transform: none;
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+.projects-list .project-item:hover .project-image {
+  transform: none;
+}
+
+/* light theme: silver window, gold frame */
+html[data-theme="light"] .projects-list .project-item .project-image-col {
+  background:
+    linear-gradient(165deg, #ffffff 0%, #d9dde3 100%) padding-box,
+    var(--rc-gold) border-box;
+  box-shadow:
+    0 18px 38px rgba(60, 70, 90, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+html[data-theme="light"]
+  .projects-list
+  .project-item
+  .project-image-col::after {
+  border-color: rgba(138, 101, 8, 0.38);
+  background:
+    radial-gradient(
+      circle at 0.8rem 50%,
+      #b8860b 0 0.16rem,
+      transparent 0.18rem
+    ),
+    rgba(255, 255, 255, 0.75);
+}
+html[data-theme="light"]
+  .projects-list
+  .project-item
+  .project-image-col
+  .project-image {
+  border-color: rgba(138, 101, 8, 0.4);
+  box-shadow: 0 6px 14px rgba(60, 70, 90, 0.22);
+}
+html[data-theme="light"] .projects-list .project-item:hover .project-image-col {
+  border-color: transparent;
+  box-shadow:
+    0 18px 38px rgba(60, 70, 90, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* phone: slimmer window chrome */
+@media (max-width: 767px) {
+  .projects-list .project-item .project-image-col {
+    padding: 0 0.55rem 0.55rem;
+    border-radius: 14px;
+  }
+  .projects-list .project-item .project-image-col::before {
+    height: 1.95rem;
+    background:
+      radial-gradient(
+        circle at 0.95rem 50%,
+        #fff1a8 0 0.2rem,
+        transparent 0.23rem
+      ),
+      radial-gradient(
+        circle at 1.6rem 50%,
+        #e6b93c 0 0.2rem,
+        transparent 0.23rem
+      ),
+      radial-gradient(
+        circle at 2.25rem 50%,
+        #b8860b 0 0.2rem,
+        transparent 0.23rem
+      );
+  }
+  .projects-list .project-item .project-image-col::after {
+    top: 0.42rem;
+    height: 1.1rem;
+    width: 50%;
+  }
+  .projects-list .project-item .project-image-col .project-image {
+    border-radius: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .projects-list .project-item:hover .project-image-col {
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   PROJECT IMAGE — taller, stretched to fill the frame (no empty space)
+   Tune the height with --pc-ratio (width / height): bigger 2nd number = taller.
+   ========================================================================== */
+.projects-list .project-item .project-image-col {
+  --pc-ratio: 16 / 9.5;
+}
+.projects-list .project-item .project-image-col .project-image {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--pc-ratio);
+  padding: 0;
+  object-fit: fill;
+  border-radius: 10px;
+  border: 1px solid rgba(230, 185, 60, 0.35);
+  background: none;
+  box-shadow: none;
+}
+html[data-theme="light"]
+  .projects-list
+  .project-item
+  .project-image-col
+  .project-image {
+  border-color: rgba(138, 101, 8, 0.4);
+  background: none;
+  box-shadow: none;
+}
+@media (max-width: 767px) {
+  .projects-list .project-item .project-image-col {
+    --pc-ratio: 4 / 2.5;
+  }
+  .projects-list .project-item .project-image-col .project-image {
+    border-radius: 8px;
+  }
+}
