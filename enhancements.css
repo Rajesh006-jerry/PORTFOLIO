@@ -1,7 +1,4 @@
-/* ==========================================================================
-   GOLD CARD v2  —  PC: landscape certificate  |  Phone: tall ribbon card
-   Dark: black + gold   |   Light: silver + gold
-   ========================================================================== */
+
 :root {
   --rc-gold: linear-gradient(
     135deg,
@@ -1604,5 +1601,41 @@ html[data-theme="light"]
   }
   .projects-list .project-item .project-image-col .project-image {
     border-radius: 8px;
+  }
+}
+
+/* ==========================================================================
+   PROJECTS SECTION — tighter, aligned desktop spacing (PC view only)
+   ========================================================================== */
+@media (min-width: 768px) {
+  /* section before "Selected work": less bottom space */
+  section.extra {
+    padding-block: 4.5rem;
+  }
+  /* "Selected work" section */
+  #project.projects {
+    padding: 4.5rem 4rem 5rem;
+  }
+  /* heading + list share the same width/left edge as the section above */
+  #project .projects-header,
+  #project .projects-list {
+    max-width: 80rem;
+    margin-inline: auto;
+  }
+  #project .projects-header {
+    margin-bottom: 3rem;
+    gap: 2rem;
+  }
+  #project .projects-list {
+    gap: 4.5rem;
+  }
+  #project .project-item {
+    gap: 3rem;
+    align-items: center;
+  }
+}
+@media (min-width: 1024px) {
+  #project .projects-header {
+    margin-bottom: 3rem;
   }
 }
