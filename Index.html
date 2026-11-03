@@ -7,8 +7,16 @@
     <link rel="stylesheet" href="enhancements.css" />
     <link rel="stylesheet" href="goldcard.css" />
     <script src="enhancements.js"></script>
+    <script src="glow-cursor.js" defer></script>
+    <script src="orbit-images.js" defer></script>
+    <script src="orbit-skills.js" defer></script>
     <style>
-    
+      /* ==========================================================================
+   RAJESH S — PORTFOLIO  |  styles.css (consolidated + optimized)
+   Merges the old inline <style> and enhancements.css into one file.
+   Dark theme = default (:root). Light theme = html[data-theme="light"],
+   which only swaps the tokens below, so there are no per-element overrides.
+   ========================================================================== */
 
       /* ===== 1. TOKENS ===== */
       :root {
@@ -874,7 +882,7 @@
       .about {
         position: relative;
         min-height: 100vh;
-        padding: 6rem 1.5rem 0;
+        padding: 4 rem 1.5rem 0;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -955,8 +963,8 @@
       }
       @media (min-width: 1024px) {
         .about-image-col {
-          justify-content: flex-start;
-          padding-left: 5rem;
+          justify-content: center;
+          padding-left: 0;
         }
       }
       .about-image {
@@ -1728,7 +1736,11 @@
       /* ===== 8. CONTACT ===== */
       .contact {
         position: relative;
-        min-height: 70vh;
+        min-height: 100vh;
+        min-height: 100svh;
+        /* cancel html{scroll-padding-top} so the section lands flush at the
+           top of the screen (no strip of the previous section above it) */
+        scroll-margin-top: -90px;
         width: 100%;
         padding: 2rem 0;
         display: flex;
@@ -1758,7 +1770,7 @@
         z-index: 1;
         display: flex;
         flex-direction: column;
-        gap: 5rem;
+        gap: rem;
         width: 100%;
         max-width: 80rem;
         margin: 0 auto;
@@ -2877,7 +2889,7 @@
 
           <div class="about-grid">
             <div class="about-image-col">
-              <img src="about.png" alt="" />
+              <div id="skillsOrbit"></div>
             </div>
 
             <div class="about-text-col">
