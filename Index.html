@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rajesh S — MERN Stack Developer Portfolio</title>
+    <link rel="preload" as="image" href="bg.png" fetchpriority="high" />
+    <link rel="preload" as="image" href="index.png" />
     <link rel="stylesheet" href="enhancements.css" />
     <link rel="stylesheet" href="goldcard.css" />
     <script src="enhancements.js"></script>
@@ -273,8 +275,8 @@
         opacity: 0;
         transform: translateY(24px);
         transition:
-          opacity 0.8s ease,
-          transform 0.8s ease;
+          opacity 0.5s ease,
+          transform 0.5s ease;
       }
       .main-content.visible {
         opacity: 1;
@@ -357,7 +359,7 @@
         flex-direction: column;
         align-items: flex-start;
         width: max-content;
-        transition: top 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: top 1s cubic-bezier(0.16, 1, 0.3, 1);
       }
       .hero-title {
         font-size: 16vw;
@@ -485,7 +487,8 @@
         width: 100%;
         pointer-events: none;
         transform: translateY(100vh);
-        transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
       }
       .hero-image {
         width: 100%;
@@ -3380,73 +3383,71 @@
 
         const target = "PORTFOLIO";
         const start = "RAJESH S";
-        let iterations = 0;
 
-        const img = new Image();
-        const imageLoaded = new Promise((resolve) => {
-          img.src = "bg.png";
-          if (img.complete) resolve();
-          else {
-            img.onload = resolve;
-            img.onerror = resolve;
-          }
-        });
-        const delay = new Promise((resolve) => setTimeout(resolve, 1000));
+        // Wait only for the hero images (capped at 1.2s) -> no fixed 1s delay
+        const loadImg = (src) =>
+          new Promise((resolve) => {
+            const im = new Image();
+            im.onload = im.onerror = resolve;
+            im.src = src;
+            if (im.complete) resolve();
+          });
+        const cap = new Promise((resolve) => setTimeout(resolve, 1200));
+        Promise.race([
+          Promise.all([loadImg("bg.png"), loadImg("index.png")]),
+          cap,
+        ]).then(runScramble);
 
-        Promise.all([imageLoaded, delay]).then(() => {
-          const intervalId = setInterval(() => {
-            let newText = target
+        // Scramble text: ~0.55s total, driven by rAF (was ~1.35s on setInterval)
+        function runScramble() {
+          const t0 = performance.now();
+          const DURATION = 550;
+          let lastText = "";
+          (function frame(now) {
+            const p = Math.min(1, (now - t0) / DURATION);
+            const done = Math.floor(p * target.length);
+            const text = target
               .split("")
-              .map((letter, index) => {
-                if (index < Math.floor(iterations)) return target[index];
-                if (index < start.length) return start[index];
-                return "";
-              })
+              .map((letter, i) =>
+                i < done ? letter : i < start.length ? start[i] : "",
+              )
               .join("");
-            heroTitle.textContent = newText;
-
-            if (iterations >= target.length) {
-              clearInterval(intervalId);
+            if (text !== lastText) heroTitle.textContent = lastText = text;
+            if (p < 1) requestAnimationFrame(frame);
+            else {
+              heroTitle.textContent = target;
               runIntroAnimation();
             }
-            iterations += 1 / 3;
-          }, 50);
-        });
+          })(t0);
+        }
 
         function runIntroAnimation() {
           const isMobile = window.innerWidth < 768;
 
-          // Move center text container up
-          setTimeout(() => {
+          // Everything starts together in the next frame (was staggered 200-2000ms)
+          requestAnimationFrame(() => {
             heroCenter.style.top = isMobile ? "20%" : "45%";
-          }, 200);
+            heroImageWrap.style.transform = "translateY(0)";
 
-          // Fade/slide subtitle and buttons up
-          setTimeout(() => {
             heroSubtitle.style.transition =
-              "opacity 1.2s cubic-bezier(0.16,1,0.3,1), transform 1.2s cubic-bezier(0.16,1,0.3,1)";
+              "opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1)";
             heroSubtitle.style.transform = "translate(-50%, 0)";
             heroSubtitle.style.opacity = "1";
 
             heroButtons.style.transition =
-              "opacity 1.2s cubic-bezier(0.16,1,0.3,1) 0.2s, transform 1.2s cubic-bezier(0.16,1,0.3,1) 0.2s";
+              "opacity 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s, transform 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s";
             heroButtons.style.transform = "translateY(0)";
             heroButtons.style.opacity = "1";
-          }, 700);
+          });
 
-          // Slide image up
-          setTimeout(() => {
-            heroImageWrap.style.transform = "translateY(0)";
-          }, 500);
-
-          // Unlock scroll + reveal rest of site
+          // Unlock scroll + reveal rest of site (was 2000ms after scramble)
           setTimeout(() => {
             document.body.style.overflow = "auto";
             mainContent.classList.add("visible");
             initNavbar();
             initAbout();
             initServices();
-          }, 2000);
+          }, 700);
         }
       })();
 
