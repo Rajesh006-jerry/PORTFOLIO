@@ -1,4 +1,13 @@
-
+/* ==========================================================================
+   GLOW CURSOR — vanilla JS port (no React / build step needed)
+   WebGL2 fluid-sim light trail that follows the pointer across the whole page.
+   - Follows the site theme (html[data-theme="dark" | "light"])
+   - Desktop / fine-pointer only; skipped on touch devices
+   - Respects prefers-reduced-motion
+   - Fails silently if WebGL2 / float render targets are unavailable
+   Tweak the look from the console or your own code:
+     GlowCursor.update({ intensity: 1.6, linger: 2 })
+   ========================================================================== */
 (function () {
   "use strict";
   if (window.GlowCursor) return;
@@ -345,15 +354,11 @@ void main() {
 
   /* ------------------------------------------------------------------ init */
   function init() {
-    // Mouse AND touch. Touch devices get a lighter config to save battery.
-    var isTouch =
-      (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
-      "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0;
-    if (isTouch) {
-      SETTINGS.quality = "low";
-      SETTINGS.maxDevicePixelRatio = 1.5;
-    }
+    // Desktop / mouse only — skip touch devices to save battery
+    var fine =
+      window.matchMedia &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!fine) return;
 
     var container = document.createElement("div");
     container.className = "glow-cursor";
@@ -1056,10 +1061,10 @@ void main() {
     }
 
     /* ---- events ---- */
-    function moveTo(clientX, clientY) {
+    function onPointerMove(event) {
       var rect = container.getBoundingClientRect();
-      var x = clientX - rect.left;
-      var y = clientY - rect.top;
+      var x = event.clientX - rect.left;
+      var y = event.clientY - rect.top;
       var inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
       if (!inside) {
         if (state.pointer.inside) {
@@ -1084,50 +1089,20 @@ void main() {
       wake();
     }
 
-    function burstAt(clientX, clientY) {
+    function onPointerDown(event) {
       if (!S.clickBurst || !S.enabled) return;
       var rect = container.getBoundingClientRect();
-      var x = clientX - rect.left;
-      var y = clientY - rect.top;
+      var x = event.clientX - rect.left;
+      var y = event.clientY - rect.top;
       if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
       state.bursts.push([x, y]);
       wake();
     }
 
-    function release_pointer() {
+    function onPointerLeave() {
       state.pointer.inside = false;
       state.ready = false;
       wake();
-    }
-
-    // Mouse / pen (touch is handled separately below, because browsers
-    // fire pointercancel as soon as a finger starts scrolling the page)
-    function onPointerMove(event) {
-      if (event.pointerType === "touch") return;
-      moveTo(event.clientX, event.clientY);
-    }
-    function onPointerDown(event) {
-      if (event.pointerType === "touch") return;
-      burstAt(event.clientX, event.clientY);
-    }
-    function onPointerLeave() {
-      release_pointer();
-    }
-
-    // Touch: touchmove keeps firing while the page scrolls
-    function onTouchStart(event) {
-      var t = event.touches[0];
-      if (!t) return;
-      state.ready = false; // restart trail at the new finger position (no streak)
-      moveTo(t.clientX, t.clientY);
-      burstAt(t.clientX, t.clientY);
-    }
-    function onTouchMove(event) {
-      var t = event.touches[0];
-      if (t) moveTo(t.clientX, t.clientY);
-    }
-    function onTouchEnd(event) {
-      if (event.touches.length === 0) release_pointer();
     }
 
     function onVisibility() {
@@ -1164,10 +1139,6 @@ void main() {
 
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchmove", onTouchMove, { passive: true });
-    window.addEventListener("touchend", onTouchEnd, { passive: true });
-    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
     document.documentElement.addEventListener("pointerleave", onPointerLeave);
     document.addEventListener("visibilitychange", onVisibility);
     resize();
@@ -1191,10 +1162,6 @@ void main() {
         themeObserver.disconnect();
         window.removeEventListener("pointermove", onPointerMove);
         window.removeEventListener("pointerdown", onPointerDown);
-        window.removeEventListener("touchstart", onTouchStart);
-        window.removeEventListener("touchmove", onTouchMove);
-        window.removeEventListener("touchend", onTouchEnd);
-        window.removeEventListener("touchcancel", onTouchEnd);
         document.documentElement.removeEventListener(
           "pointerleave",
           onPointerLeave,
