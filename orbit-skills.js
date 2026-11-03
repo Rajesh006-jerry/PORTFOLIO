@@ -43,7 +43,7 @@
     'border:1px solid var(--gold-line,rgba(230,185,60,.25));background:var(--e-card,rgba(230,185,60,.04))">' +
     '<span style="font-weight:900;font-size:1.05rem;line-height:1;letter-spacing:.14em;text-transform:uppercase;' +
     'background:var(--heading-grad,linear-gradient(#fff1a8,#e6b93c));-webkit-background-clip:text;background-clip:text;' +
-    '-webkit-text-fill-color:transparent;color:transparent">Skills</span></div>';
+    '-webkit-text-fill-color:transparent;color:transparent">MERN</span></div>';
 
   function init() {
     var host = document.getElementById("skillsOrbit");
