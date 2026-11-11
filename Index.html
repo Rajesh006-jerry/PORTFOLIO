@@ -491,8 +491,6 @@
         will-change: transform;
       }
       .hero-image {
-        /* Portrait sized like the earlier hero: head starts ~25% down the
-           viewport, body runs off the bottom edge. Tune --hero-img-w / --hero-head-top. */
         --hero-img-w: min(31rem, 85vw);
         --hero-head-top: 81px; /* = nav bar height, so the head touches the nav */
         width: var(--hero-img-w);
@@ -507,14 +505,12 @@
         );
       }
       @media (min-width: 768px) {
-        .hero-center {
-          margin-top: 189px; /* pushes PORTFOLIO + subtitle down; change this number to adjust */
-        }
         .hero-image {
-          transform: translateX(3.5rem); /* nudge right; increase to move further */
+          transform: translateX(
+            5.5rem
+          ); /* nudge right; increase to move further */
         }
       }
-
       /* Mobile hero (transform needs !important: the intro script sets it inline) */
       @media (max-width: 767px) {
         .hero-center {
@@ -555,6 +551,7 @@
         .hero-title {
           font-size: 10rem;
           padding-right: 2rem;
+          margin-top: 150px;
         }
         .hero-subtitle {
           position: relative;
@@ -3795,28 +3792,35 @@
         e.target.reset();
       });
     </script>
-      <script>
-      /* Mobile hero: keep exactly 52px between the subtitle and the top of the head */
+    <script>
+      /* Mobile hero spacing: navbar -> PORTFOLIO, and subtitle -> image */
       (function () {
-        var GAP = 52;
+        var GAP_TOP = 30; /* px between navbar and PORTFOLIO */
+        var GAP = 30; /* px between "MERN STACK DEVELOPER" and the image */
         function fit() {
           var hero = document.getElementById("home");
+          var nav = document.getElementById("navbar");
           var center = document.getElementById("heroCenter");
           var sub = document.getElementById("heroSubtitle");
           var img = document.querySelector(".hero-image");
-          if (!hero || !center || !sub || !img) return;
+          if (!hero || !nav || !center || !sub || !img) return;
           if (window.innerWidth >= 768) {
+            center.style.removeProperty("margin-top");
             img.style.removeProperty("--hero-head-top");
             img.style.removeProperty("--hero-img-w");
             return;
           }
           var H = hero.offsetHeight;
-          /* final resting spot of the text block: centred on 20% of the hero */
-          var bottom = H * 0.2 + center.offsetHeight / 2 + sub.offsetHeight;
+          var titleTop = nav.offsetHeight + GAP_TOP;
+          /* the intro script parks the text block centred on 20% of the hero;
+         a margin-top shifts it so the title starts exactly at titleTop */
+          center.style.marginTop =
+            titleTop - (H * 0.2 - center.offsetHeight / 2) + "px";
+          var bottom = titleTop + center.offsetHeight + sub.offsetHeight;
           var top = bottom + GAP;
           var w = Math.min(
             window.innerWidth * 0.98,
-            Math.max(window.innerWidth * 0.85, (H - top) / 1.4218)
+            Math.max(window.innerWidth * 0.85, (H - top) / 1.4218),
           );
           img.style.setProperty("--hero-head-top", top + "px");
           img.style.setProperty("--hero-img-w", w + "px");
@@ -3824,9 +3828,10 @@
         window.addEventListener("load", fit);
         window.addEventListener("resize", fit);
         window.addEventListener("orientationchange", fit);
-        if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+        if (document.fonts && document.fonts.ready)
+          document.fonts.ready.then(fit);
         fit();
       })();
     </script>
-</body>
+  </body>
 </html>
