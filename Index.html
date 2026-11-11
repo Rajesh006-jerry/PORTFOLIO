@@ -491,13 +491,26 @@
         will-change: transform;
       }
       .hero-image {
-        width: 100%;
-        max-width: 28rem;
+        --hero-img-w: min(31rem, 85vw);
+        --hero-head-top: 81px; /* = nav bar height, so the head touches the nav */
+        width: var(--hero-img-w);
+        max-width: none;
+        height: auto;
         object-fit: contain;
         filter: drop-shadow(0 20px 50px rgba(0, 0, 0, 0.5));
         margin: 0 auto;
+        margin-bottom: min(
+          0px,
+          calc(100vh - var(--hero-head-top) - var(--hero-img-w) * 1.4218)
+        );
       }
-
+      @media (min-width: 768px) {
+        .hero-image {
+          transform: translateX(
+            5.5rem
+          ); /* nudge right; increase to move further */
+        }
+      }
       /* Mobile hero (transform needs !important: the intro script sets it inline) */
       @media (max-width: 767px) {
         .hero-center {
@@ -538,6 +551,7 @@
         .hero-title {
           font-size: 10rem;
           padding-right: 2rem;
+          margin-top: 150px;
         }
         .hero-subtitle {
           position: relative;
@@ -2879,7 +2893,7 @@
       </div>
 
       <div class="hero-image-wrap" id="heroImageWrap">
-        <img src="index.png" alt="" />
+        <img class="hero-image" src="index.png" alt="" />
       </div>
     </section>
 
