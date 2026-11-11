@@ -3793,10 +3793,12 @@
       });
     </script>
     <script>
-      /* Mobile hero spacing: navbar -> PORTFOLIO, and subtitle -> image */
+      /* Mobile-only hero spacing (desktop is left completely untouched) */
       (function () {
         var GAP_TOP = 30; /* px between navbar and PORTFOLIO */
         var GAP = 10; /* px between "MERN STACK DEVELOPER" and the image */
+        var mq = window.matchMedia("(max-width: 767px)");
+
         function fit() {
           var hero = document.getElementById("home");
           var nav = document.getElementById("navbar");
@@ -3804,16 +3806,17 @@
           var sub = document.getElementById("heroSubtitle");
           var img = document.querySelector(".hero-image");
           if (!hero || !nav || !center || !sub || !img) return;
-          if (window.innerWidth >= 768) {
+
+          /* Desktop: remove every inline override so the CSS controls the layout */
+          if (!mq.matches) {
             center.style.removeProperty("margin-top");
             img.style.removeProperty("--hero-head-top");
             img.style.removeProperty("--hero-img-w");
             return;
           }
+
           var H = hero.offsetHeight;
           var titleTop = nav.offsetHeight + GAP_TOP;
-          /* the intro script parks the text block centred on 20% of the hero;
-         a margin-top shifts it so the title starts exactly at titleTop */
           center.style.marginTop =
             titleTop - (H * 0.2 - center.offsetHeight / 2) + "px";
           var bottom = titleTop + center.offsetHeight + sub.offsetHeight;
@@ -3825,9 +3828,11 @@
           img.style.setProperty("--hero-head-top", top + "px");
           img.style.setProperty("--hero-img-w", w + "px");
         }
+
         window.addEventListener("load", fit);
         window.addEventListener("resize", fit);
         window.addEventListener("orientationchange", fit);
+        if (mq.addEventListener) mq.addEventListener("change", fit);
         if (document.fonts && document.fonts.ready)
           document.fonts.ready.then(fit);
         fit();
