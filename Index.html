@@ -2793,6 +2793,23 @@
           transform: none;
         }
       }
+
+      /* ===== STAR BORDER (animated light running round every button) ===== */
+      :root {
+        --sb-color: #b8860b; /* dark theme: colour of the running star + trail */
+      }
+      html[data-theme="light"] {
+        --sb-color: #ff9d00; /* light theme: brighter, more saturated gold */
+      }
+      .sb {
+        position: relative;
+        isolation: isolate;
+      }
+      .sb-light {
+        position: absolute;
+        z-index: -1;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
@@ -3843,6 +3860,493 @@
         if (document.fonts && document.fonts.ready)
           document.fonts.ready.then(fit);
         fit();
+      })();
+    </script>
+    <script>
+      /* ==========================================================================
+         STAR BORDER — vanilla port of the React <StarBorder /> component.
+         One shared render loop for every button; only buttons on screen animate.
+         Colour: change --sb-color in the CSS. Behaviour: edit CFG below.
+         ========================================================================== */
+      (function () {
+        "use strict";
+
+        var SELECTOR = [
+          ".hero-icon-btn",
+          ".hero-contact-btn",
+          ".contact-submit",
+          ".service-btn",
+          ".btn-lime",
+          ".btn-outline",
+          ".card-connect",
+          ".rc-btn",
+        ].join(",");
+
+        var CFG = {
+          duration: 3, // seconds for one lap
+          thickness: 1.5, // px
+          trailLength: 0.6, // 0 – 1
+          stars: 2,
+          glow: 0.6, // 0 – 1
+          direction: 1, // 1 = clockwise, -1 = counter-clockwise
+        };
+
+        var BLEED = 40; // canvas margin around the button so the glow isn't clipped
+        var LAP = 0.9; // seconds, hover lap burst
+        var PULSE = 0.65; // seconds, click pulse
+        var TAU = Math.PI * 2;
+        var WHITE = [255, 255, 255];
+        var root = document.documentElement;
+        var reduce =
+          window.matchMedia &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        /* ---------- tiny helpers ---------- */
+        function clamp(v, a, b) {
+          return Math.min(b, Math.max(a, v));
+        }
+        function wrap(v, t) {
+          return ((v % t) + t) % t;
+        }
+        function ease(t) {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(2 - 2 * t, 3) / 2;
+        }
+        function mix(a, b, t) {
+          return [
+            a[0] + (b[0] - a[0]) * t,
+            a[1] + (b[1] - a[1]) * t,
+            a[2] + (b[2] - a[2]) * t,
+          ];
+        }
+        function rgba(c, a) {
+          return (
+            "rgba(" +
+            Math.round(c[0]) +
+            "," +
+            Math.round(c[1]) +
+            "," +
+            Math.round(c[2]) +
+            "," +
+            clamp(a, 0, 1).toFixed(3) +
+            ")"
+          );
+        }
+
+        /* ---------- theme / colour (re-read when data-theme changes) ---------- */
+        var parser = document.createElement("canvas").getContext("2d");
+        var theme = { light: false, rgb: [184, 134, 11], sprite: null, reach: 36, alpha: 0.24 };
+
+        function toRgb(color) {
+          if (!parser) return WHITE;
+          parser.fillStyle = "#000000";
+          parser.fillStyle = color;
+          var v = String(parser.fillStyle);
+          if (v.charAt(0) === "#") {
+            var n = parseInt(v.slice(1, 7), 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+          }
+          var m = v.match(/[\d.]+/g);
+          return m ? [+m[0], +m[1], +m[2]] : WHITE;
+        }
+
+        /* soft glow drawn once, then stamped with drawImage (much cheaper
+           than building a radial gradient for every star on every frame) */
+        function buildSprite() {
+          var reach = (12 + 40 * CFG.glow) * (theme.light ? 0.8 : 1);
+          var size = Math.ceil(reach * 2);
+          var c = document.createElement("canvas");
+          c.width = c.height = size;
+          var g = c.getContext("2d");
+          var grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+          grad.addColorStop(0, rgba(theme.rgb, 1));
+          grad.addColorStop(0.2, rgba(theme.rgb, 0.4));
+          grad.addColorStop(0.5, rgba(theme.rgb, 0.1));
+          grad.addColorStop(1, rgba(theme.rgb, 0));
+          g.fillStyle = grad;
+          g.fillRect(0, 0, size, size);
+          theme.sprite = c;
+          theme.reach = reach;
+          theme.alpha = (theme.light ? 0.5 : 0.4) * CFG.glow;
+        }
+
+        function refreshTheme() {
+          var css = getComputedStyle(root).getPropertyValue("--sb-color").trim();
+          theme.light = root.getAttribute("data-theme") === "light";
+          theme.rgb = toRgb(css || "#b8860b");
+          buildSprite();
+          wake();
+        }
+
+        /* ---------- rounded-rect outline as a path you can walk along ---------- */
+        function outline(w, h, radius) {
+          var r = Math.max(0, Math.min(radius, w / 2, h / 2));
+          var arc = (Math.PI * r) / 2;
+          var across = Math.max(0, w - 2 * r);
+          var down = Math.max(0, h - 2 * r);
+          var seg = [
+            { l: across, x: r, y: 0, dx: 1, dy: 0, a: null },
+            { l: arc, x: w - r, y: r, dx: 0, dy: 0, a: -Math.PI / 2 },
+            { l: down, x: w, y: r, dx: 0, dy: 1, a: null },
+            { l: arc, x: w - r, y: h - r, dx: 0, dy: 0, a: 0 },
+            { l: across, x: w - r, y: h, dx: -1, dy: 0, a: null },
+            { l: arc, x: r, y: h - r, dx: 0, dy: 0, a: Math.PI / 2 },
+            { l: down, x: 0, y: h - r, dx: 0, dy: -1, a: null },
+            { l: arc, x: r, y: r, dx: 0, dy: 0, a: Math.PI },
+          ];
+          var total = 0;
+          for (var i = 0; i < seg.length; i++) total += seg[i].l;
+          return { r: r, seg: seg, total: Math.max(1, total) };
+        }
+
+        var P = { x: 0, y: 0 }; // shared scratch point (no allocations per frame)
+
+        function pointAt(shape, dist) {
+          var s = wrap(dist, shape.total);
+          for (var i = 0; i < shape.seg.length; i++) {
+            var g = shape.seg[i];
+            if (g.l > 0 && s <= g.l) {
+              if (g.a === null) {
+                P.x = g.x + g.dx * s;
+                P.y = g.y + g.dy * s;
+              } else {
+                var a = g.a + s / shape.r;
+                P.x = g.x + Math.cos(a) * shape.r;
+                P.y = g.y + Math.sin(a) * shape.r;
+              }
+              return P;
+            }
+            s -= g.l;
+          }
+          return P;
+        }
+
+        /* nearest distance-along-outline for a point (used for the click pulse) */
+        function project(shape, px, py) {
+          var best = Infinity, found = 0, offset = 0;
+          for (var i = 0; i < shape.seg.length; i++) {
+            var g = shape.seg[i];
+            if (g.l > 0) {
+              var s, x, y;
+              if (g.a === null) {
+                s = clamp((px - g.x) * g.dx + (py - g.y) * g.dy, 0, g.l);
+                x = g.x + g.dx * s;
+                y = g.y + g.dy * s;
+              } else {
+                var a = wrap(Math.atan2(py - g.y, px - g.x) - g.a, TAU);
+                if (a > Math.PI / 2) a = a > Math.PI * 1.25 ? 0 : Math.PI / 2;
+                s = a * shape.r;
+                x = g.x + Math.cos(g.a + a) * shape.r;
+                y = g.y + Math.sin(g.a + a) * shape.r;
+              }
+              var d = (px - x) * (px - x) + (py - y) * (py - y);
+              if (d < best) {
+                best = d;
+                found = offset + s;
+              }
+            }
+            offset += g.l;
+          }
+          return found;
+        }
+
+        /* ---------- one instance per button ---------- */
+        function Star(el) {
+          this.el = el;
+          this.c = document.createElement("canvas");
+          this.c.className = "sb-light";
+          this.c.setAttribute("aria-hidden", "true");
+          this.x = this.c.getContext("2d");
+          el.classList.add("sb");
+          el.insertBefore(this.c, el.firstChild);
+
+          this.w = 0;
+          this.h = 0;
+          this.dpr = 1;
+          this.shape = null;
+          this.dirty = true;
+          this.ready = false;
+          this.visible = !io; // no IntersectionObserver -> always draw
+          this.phase = 0;
+          this.velocity = 0;
+          this.motion = 0;
+          this.lap = -1;
+          this.flash = 0;
+          this.pulses = [];
+        }
+
+        Star.prototype.measure = function () {
+          var el = this.el;
+          var cs = getComputedStyle(el);
+          var T = CFG.thickness;
+          this.w = el.offsetWidth;
+          this.h = el.offsetHeight;
+          this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+          /* absolute children are positioned from the padding edge, so add the border */
+          var bl = parseFloat(cs.borderLeftWidth) || 0;
+          var bt = parseFloat(cs.borderTopWidth) || 0;
+          var st = this.c.style;
+          st.left = -(BLEED + bl) + "px";
+          st.top = -(BLEED + bt) + "px";
+          st.width = this.w + BLEED * 2 + "px";
+          st.height = this.h + BLEED * 2 + "px";
+          this.c.width = Math.max(1, Math.round((this.w + BLEED * 2) * this.dpr));
+          this.c.height = Math.max(1, Math.round((this.h + BLEED * 2) * this.dpr));
+
+          var radius = parseFloat(cs.borderTopLeftRadius) || 0;
+          this.shape = outline(Math.max(1, this.w - T), Math.max(1, this.h - T), radius - T / 2);
+          if (!this.ready) {
+            this.phase = Math.random() * this.shape.total; // buttons don't move in sync
+            this.ready = true;
+          }
+          this.dirty = false;
+        };
+
+        Star.prototype.update = function (dt) {
+          var total = this.shape.total;
+          var cruise = reduce ? 0 : (CFG.direction * total) / CFG.duration;
+          this.flash *= Math.exp(-dt / 0.22);
+          this.velocity += (cruise - this.velocity) * (1 - Math.exp(-dt / 0.45));
+
+          var extra = 0;
+          if (this.lap >= 0) {
+            var before = ease(Math.min(1, this.lap / LAP));
+            this.lap += dt;
+            extra = (ease(Math.min(1, this.lap / LAP)) - before) * total * CFG.direction;
+            if (this.lap >= LAP) this.lap = -1;
+          }
+          this.motion = this.velocity + extra / dt;
+          this.phase = wrap(this.phase + this.velocity * dt + extra, total);
+
+          for (var i = this.pulses.length - 1; i >= 0; i--) {
+            this.pulses[i].age += dt;
+            if (this.pulses[i].age >= PULSE) this.pulses.splice(i, 1);
+          }
+          return !reduce || this.lap >= 0 || this.flash > 0.01 || this.pulses.length > 0;
+        };
+
+        Star.prototype.trail = function (head, length, sign, intensity, tip) {
+          if (length < 0.5 || intensity <= 0) return;
+          var x = this.x, shape = this.shape, light = theme.light, rgb = theme.rgb;
+          var steps = clamp(Math.ceil(length / 3), 2, 48);
+          var glowW = 2 + 6 * CFG.glow;
+          pointAt(shape, head);
+          var px = P.x, py = P.y;
+          for (var i = 1; i <= steps; i++) {
+            pointAt(shape, head - sign * length * (i / steps));
+            var u = 1 - (i - 0.5) / steps;
+            var fade = u * u * intensity;
+            var tone = light ? rgb : mix(rgb, WHITE, Math.pow(u, 6) * 0.65);
+            x.lineCap = tip && i === 1 ? "round" : "butt";
+            x.lineWidth = glowW;
+            x.strokeStyle = rgba(tone, fade * (light ? 0.35 : 0.2) * CFG.glow);
+            x.beginPath();
+            x.moveTo(px, py);
+            x.lineTo(P.x, P.y);
+            x.stroke();
+            x.lineWidth = CFG.thickness;
+            x.strokeStyle = rgba(tone, fade);
+            x.beginPath();
+            x.moveTo(px, py);
+            x.lineTo(P.x, P.y);
+            x.stroke();
+            px = P.x;
+            py = P.y;
+          }
+        };
+
+        Star.prototype.head = function (px, py, intensity) {
+          if (intensity <= 0) return;
+          var r = theme.reach;
+          this.x.globalAlpha = Math.min(1, theme.alpha * intensity);
+          this.x.drawImage(theme.sprite, px - r, py - r, r * 2, r * 2);
+          this.x.globalAlpha = 1;
+        };
+
+        Star.prototype.draw = function () {
+          var x = this.x, shape = this.shape, T = CFG.thickness, light = theme.light;
+          x.setTransform(1, 0, 0, 1, 0, 0);
+          x.clearRect(0, 0, this.c.width, this.c.height);
+          if (this.w < 2 || this.h < 2) return;
+          var off = (BLEED + T / 2) * this.dpr;
+          x.setTransform(this.dpr, 0, 0, this.dpr, off, off);
+          x.globalCompositeOperation = light ? "source-over" : "lighter";
+          x.lineCap = "butt";
+
+          var total = shape.total;
+          var spacing = total / CFG.stars;
+          var speed = Math.abs(this.motion);
+          var sign = this.motion >= 0 ? 1 : -1;
+          var span = CFG.trailLength * CFG.duration;
+          var length = Math.min(speed * span, spacing * 0.92, total * 0.6);
+          var intensity = 1 + 0.6 * this.flash;
+          var i, way;
+
+          /* click flash: the whole border lights up for a moment */
+          var ring = this.flash * (light ? 0.4 : 0.32);
+          if (ring > 0.005) {
+            x.lineWidth = T + 2 * CFG.glow;
+            x.strokeStyle = rgba(theme.rgb, ring);
+            x.beginPath();
+            if (x.roundRect) x.roundRect(0, 0, Math.max(1, this.w - T), Math.max(1, this.h - T), shape.r);
+            else x.rect(0, 0, Math.max(1, this.w - T), Math.max(1, this.h - T));
+            x.stroke();
+          }
+
+          /* when nearly still (reduced motion) keep a small resting glow */
+          var still = clamp(1 - speed / Math.max(1, (total / CFG.duration) * 0.6), 0, 1);
+          var rest = (10 + 14 * CFG.glow + T * 2) * still;
+          for (i = 0; i < CFG.stars; i++) {
+            var head = this.phase + i * spacing;
+            this.trail(head, length, sign, Math.min(1, intensity), true);
+            if (still > 0.01) {
+              this.trail(head, rest, 1, still, false);
+              this.trail(head, rest, -1, still, false);
+            }
+          }
+
+          for (i = 0; i < this.pulses.length; i++) {
+            var pl = this.pulses[i];
+            var fade = Math.pow(1 - pl.age / PULSE, 2);
+            var travel = (total / 2) * (1 - Math.pow(1 - Math.min(1, pl.age / 0.5), 2));
+            var tail = Math.min(travel, total * 0.16);
+            for (way = 1; way >= -1; way -= 2) {
+              var front = pl.origin + way * travel;
+              this.trail(front, tail, way, fade, true);
+              pointAt(shape, front);
+              this.head(P.x, P.y, fade * 0.8);
+            }
+          }
+
+          for (i = 0; i < CFG.stars; i++) {
+            pointAt(shape, this.phase + i * spacing);
+            this.head(P.x, P.y, Math.min(1.3, intensity));
+          }
+        };
+
+        Star.prototype.pulse = function (origin) {
+          this.pulses.push({ origin: origin, age: 0 });
+          if (this.pulses.length > 4) this.pulses.shift();
+          this.flash = 1;
+          wake();
+        };
+
+        /* ---------- shared render loop ---------- */
+        var list = [];
+        var raf = 0;
+        var last = 0;
+        var io =
+          "IntersectionObserver" in window
+            ? new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                  if (e.target.__sb) e.target.__sb.visible = e.isIntersecting;
+                });
+                wake();
+              })
+            : null;
+        var ro = new ResizeObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (e.target.__sb) e.target.__sb.dirty = true;
+          });
+          wake();
+        });
+
+        function wake() {
+          if (raf) return;
+          last = performance.now();
+          raf = requestAnimationFrame(frame);
+        }
+
+        function frame(now) {
+          raf = 0;
+          var dt = Math.min(0.05, Math.max(0.001, (now - last) / 1000));
+          last = now;
+          var again = false;
+          for (var i = list.length - 1; i >= 0; i--) {
+            var s = list[i];
+            if (!s.el.isConnected) {
+              ro.unobserve(s.el);
+              if (io) io.unobserve(s.el);
+              list.splice(i, 1);
+              continue;
+            }
+            if (!s.visible) continue; // off-screen buttons cost nothing
+            if (s.dirty) s.measure();
+            if (s.update(dt)) again = true;
+            s.draw();
+          }
+          if (again) raf = requestAnimationFrame(frame);
+        }
+
+        /* ---------- attach to buttons ---------- */
+        function attach(el) {
+          if (el.__sb) return;
+          var s = new Star(el);
+          el.__sb = s;
+          list.push(s);
+
+          el.addEventListener("pointerenter", function () {
+            if (!reduce && s.lap < 0) s.lap = 0;
+            wake();
+          });
+          el.addEventListener("pointerdown", function (e) {
+            if (!s.shape || (e.button !== 0 && e.pointerType === "mouse")) return;
+            var r = el.getBoundingClientRect();
+            var px = (e.clientX - r.left) * (r.width ? s.w / r.width : 1);
+            var py = (e.clientY - r.top) * (r.height ? s.h / r.height : 1);
+            s.pulse(project(s.shape, px - CFG.thickness / 2, py - CFG.thickness / 2));
+          });
+          el.addEventListener("click", function (e) {
+            if (e.detail === 0 && s.shape) s.pulse(s.phase); // keyboard activation
+          });
+          el.addEventListener("focus", function () {
+            var visible = false;
+            try {
+              visible = el.matches(":focus-visible");
+            } catch (err) {}
+            if (visible && !reduce && s.lap < 0) s.lap = 0;
+            wake();
+          });
+
+          ro.observe(el);
+          if (io) io.observe(el);
+          wake();
+        }
+
+        function scan() {
+          var els = document.querySelectorAll(SELECTOR);
+          for (var i = 0; i < els.length; i++) attach(els[i]);
+        }
+
+        /* pick up buttons that other scripts add later (project cards, contact card) */
+        var scanQueued = false;
+        new MutationObserver(function (records) {
+          if (scanQueued) return;
+          for (var i = 0; i < records.length; i++) {
+            var nodes = records[i].addedNodes;
+            for (var j = 0; j < nodes.length; j++) {
+              var n = nodes[j];
+              if (n.nodeType === 1 && n.className !== "sb-light") {
+                scanQueued = true;
+                requestAnimationFrame(function () {
+                  scanQueued = false;
+                  scan();
+                });
+                return;
+              }
+            }
+          }
+        }).observe(document.body, { childList: true, subtree: true });
+
+        new MutationObserver(refreshTheme).observe(root, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
+
+        refreshTheme();
+        scan();
+        window.addEventListener("load", scan);
+        window.StarBorder = { attach: attach, scan: scan };
       })();
     </script>
   </body>
