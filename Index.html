@@ -12,6 +12,29 @@
     <script src="glow-cursor.js" defer></script>
     <script src="orbit-images.js" defer></script>
     <script src="orbit-skills.js" defer></script>
+        <style>
+      .social-circle {
+        width: 2.75rem;
+        height: 2.75rem;
+        background: var(--e-card);
+        border: 1.5px solid var(--e-accent);
+        color: var(--e-accent);
+        box-shadow: 0 0 14px rgba(var(--a-rgb), 0.18);
+        transition: transform 0.25s, background 0.25s, border-color 0.25s,
+          box-shadow 0.25s, color 0.25s;
+      }
+      .social-circle:hover {
+        border-color: #f6dc7a;
+        background: rgba(var(--a-rgb), 0.14);
+        box-shadow: 0 8px 22px rgba(var(--a-rgb), 0.35);
+      }
+      .social-circle .icon-small {
+        width: 1.15rem;
+        height: 1.15rem;
+        color: var(--e-accent);
+      }
+    </style>
+  </head>
     <style>
       /* ==========================================================================
    RAJESH S — PORTFOLIO  |  styles.css (consolidated + optimized)
@@ -663,7 +686,18 @@
       /* ===== Gradient text (navbar logo) — pure CSS, no JS per frame ===== */
       .navbar-logo .gradient-text__content {
         display: inline-block;
-        background-image: linear-gradient(90deg, #5227ff, #ff9ffc, #b497cf, #40ffaa, #4079ff, #ffd93d, #ff6b6b, #06b6d4, #5227ff);
+        background-image: linear-gradient(
+          90deg,
+          #5227ff,
+          #ff9ffc,
+          #b497cf,
+          #40ffaa,
+          #4079ff,
+          #ffd93d,
+          #ff6b6b,
+          #06b6d4,
+          #5227ff
+        );
         background-size: 300% 100%;
         background-position: 0% 50%;
         -webkit-background-clip: text;
@@ -673,10 +707,14 @@
         animation: gt-shift 3s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate; /* 3s = speed */
       }
       @keyframes gt-shift {
-        to { background-position: 100% 50%; }
+        to {
+          background-position: 100% 50%;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
-        .navbar-logo .gradient-text__content { animation: none; }
+        .navbar-logo .gradient-text__content {
+          animation: none;
+        }
       }
 
       .navbar-links {
@@ -2069,7 +2107,11 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: radial-gradient(circle, rgba(230, 185, 60, 0.06) 0%, rgba(230, 185, 60, 0) 70%);
+        background: radial-gradient(
+          circle,
+          rgba(230, 185, 60, 0.06) 0%,
+          rgba(230, 185, 60, 0) 70%
+        );
         pointer-events: none;
       }
       .footer-card {
@@ -2093,7 +2135,11 @@
         position: absolute;
         inset: 0;
         border-radius: inherit;
-        background: radial-gradient(circle 175px at calc(100% - 25px) 25px, rgba(230, 185, 60, 0.08) 0%, rgba(230, 185, 60, 0) 70%);
+        background: radial-gradient(
+          circle 175px at calc(100% - 25px) 25px,
+          rgba(230, 185, 60, 0.08) 0%,
+          rgba(230, 185, 60, 0) 70%
+        );
         pointer-events: none;
       }
       .card-top {
@@ -2827,7 +2873,11 @@
   <body>
     <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
-      <div class="navbar-logo"><span class="gradient-text__content" id="navGradientText">Rajesh S</span></div>
+      <div class="navbar-logo">
+        <span class="gradient-text__content" id="navGradientText"
+          >Rajesh S</span
+        >
+      </div>
 
       <div class="navbar-links">
         <a href="#home">Home</a>
@@ -3009,7 +3059,14 @@
         <br /><br />
         <br /><br />
         <br /><br />
-        <video autoplay muted loop playsinline preload="metadata" class="contact-bg-video">
+        <video
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          class="contact-bg-video"
+        >
           <source src="contact_bg.mp4" type="video/mp4" />
         </video>
 
@@ -3521,30 +3578,34 @@
         // SCROLL
         // ============================================================
 
-        window.addEventListener("scroll", () => {
-          if (isMenuOpen) return;
+        window.addEventListener(
+          "scroll",
+          () => {
+            if (isMenuOpen) return;
 
-          const currentScrollY = window.scrollY;
+            const currentScrollY = window.scrollY;
 
-          // Add dark background after leaving top
-          if (currentScrollY > 80) {
-            navbar.classList.add("scrolled");
-          } else {
-            navbar.classList.remove("scrolled");
-          }
+            // Add dark background after leaving top
+            if (currentScrollY > 80) {
+              navbar.classList.add("scrolled");
+            } else {
+              navbar.classList.remove("scrolled");
+            }
 
-          // Hide navbar when scrolling DOWN
-          if (currentScrollY > lastScrollY && currentScrollY > 50) {
-            navbar.classList.remove("show");
-          }
+            // Hide navbar when scrolling DOWN
+            if (currentScrollY > lastScrollY && currentScrollY > 50) {
+              navbar.classList.remove("show");
+            }
 
-          // Show navbar when scrolling UP
-          else {
-            navbar.classList.add("show");
-          }
+            // Show navbar when scrolling UP
+            else {
+              navbar.classList.add("show");
+            }
 
-          lastScrollY = currentScrollY;
-        }, { passive: true });
+            lastScrollY = currentScrollY;
+          },
+          { passive: true },
+        );
 
         // ============================================================
         // MOBILE MENU
@@ -3645,7 +3706,8 @@
           // only touch the words whose state actually changed
           const lo = litPrev < 0 ? 0 : Math.min(litPrev, litCount);
           const hi = litPrev < 0 ? words.length : Math.max(litPrev, litCount);
-          for (let i = lo; i < hi; i++) words[i].classList.toggle("lit", i < litCount);
+          for (let i = lo; i < hi; i++)
+            words[i].classList.toggle("lit", i < litCount);
           litPrev = litCount;
         }
         window.addEventListener(
@@ -3982,7 +4044,13 @@
 
         /* ---------- theme / colour (re-read when data-theme changes) ---------- */
         var parser = document.createElement("canvas").getContext("2d");
-        var theme = { light: false, rgb: [184, 134, 11], sprite: null, reach: 36, alpha: 0.24 };
+        var theme = {
+          light: false,
+          rgb: [184, 134, 11],
+          sprite: null,
+          reach: 36,
+          alpha: 0.24,
+        };
 
         function toRgb(color) {
           if (!parser) return WHITE;
@@ -4005,7 +4073,14 @@
           var c = document.createElement("canvas");
           c.width = c.height = size;
           var g = c.getContext("2d");
-          var grad = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+          var grad = g.createRadialGradient(
+            size / 2,
+            size / 2,
+            0,
+            size / 2,
+            size / 2,
+            size / 2,
+          );
           grad.addColorStop(0, rgba(theme.rgb, 1));
           grad.addColorStop(0.2, rgba(theme.rgb, 0.4));
           grad.addColorStop(0.5, rgba(theme.rgb, 0.1));
@@ -4018,7 +4093,9 @@
         }
 
         function refreshTheme() {
-          var css = getComputedStyle(root).getPropertyValue("--sb-color").trim();
+          var css = getComputedStyle(root)
+            .getPropertyValue("--sb-color")
+            .trim();
           theme.light = root.getAttribute("data-theme") === "light";
           theme.rgb = toRgb(css || "#b8860b");
           buildSprite();
@@ -4072,7 +4149,9 @@
 
         /* nearest distance-along-outline for a point (used for the click pulse) */
         function project(shape, px, py) {
-          var best = Infinity, found = 0, offset = 0;
+          var best = Infinity,
+            found = 0,
+            offset = 0;
           for (var i = 0; i < shape.seg.length; i++) {
             var g = shape.seg[i];
             if (g.l > 0) {
@@ -4147,11 +4226,21 @@
           st.top = -(this.bleed + bt) + "px";
           st.width = this.w + this.bleed * 2 + "px";
           st.height = this.h + this.bleed * 2 + "px";
-          this.c.width = Math.max(1, Math.round((this.w + this.bleed * 2) * this.dpr));
-          this.c.height = Math.max(1, Math.round((this.h + this.bleed * 2) * this.dpr));
+          this.c.width = Math.max(
+            1,
+            Math.round((this.w + this.bleed * 2) * this.dpr),
+          );
+          this.c.height = Math.max(
+            1,
+            Math.round((this.h + this.bleed * 2) * this.dpr),
+          );
 
           var radius = parseFloat(cs.borderTopLeftRadius) || 0;
-          this.shape = outline(Math.max(1, this.w - T), Math.max(1, this.h - T), radius - T / 2);
+          this.shape = outline(
+            Math.max(1, this.w - T),
+            Math.max(1, this.h - T),
+            radius - T / 2,
+          );
           if (!this.ready) {
             this.phase = Math.random() * this.shape.total; // buttons don't move in sync
             this.ready = true;
@@ -4163,13 +4252,17 @@
           var total = this.shape.total;
           var cruise = reduce ? 0 : (CFG.direction * total) / CFG.duration;
           this.flash *= Math.exp(-dt / 0.22);
-          this.velocity += (cruise - this.velocity) * (1 - Math.exp(-dt / 0.45));
+          this.velocity +=
+            (cruise - this.velocity) * (1 - Math.exp(-dt / 0.45));
 
           var extra = 0;
           if (this.lap >= 0) {
             var before = ease(Math.min(1, this.lap / LAP));
             this.lap += dt;
-            extra = (ease(Math.min(1, this.lap / LAP)) - before) * total * CFG.direction;
+            extra =
+              (ease(Math.min(1, this.lap / LAP)) - before) *
+              total *
+              CFG.direction;
             if (this.lap >= LAP) this.lap = -1;
           }
           this.motion = this.velocity + extra / dt;
@@ -4179,18 +4272,29 @@
             this.pulses[i].age += dt;
             if (this.pulses[i].age >= PULSE) this.pulses.splice(i, 1);
           }
-          return !reduce || this.lap >= 0 || this.flash > 0.01 || this.pulses.length > 0;
+          return (
+            !reduce ||
+            this.lap >= 0 ||
+            this.flash > 0.01 ||
+            this.pulses.length > 0
+          );
         };
 
         Star.prototype.trail = function (head, length, sign, intensity, tip) {
           if (length < 0.5 || intensity <= 0) return;
-          var x = this.x, shape = this.shape, light = theme.light, rgb = theme.rgb;
+          var x = this.x,
+            shape = this.shape,
+            light = theme.light,
+            rgb = theme.rgb;
           var straightStep = this.big ? 10 : 4; // coarse on straight edges
           var arcStep = 2; // fine on corners so the glow follows the curve exactly
           var glowW = 2 + 6 * CFG.glow;
           pointAt(shape, head);
-          var px = P.x, py = P.y;
-          var d = 0, first = true, guard = 0;
+          var px = P.x,
+            py = P.y;
+          var d = 0,
+            first = true,
+            guard = 0;
           while (d < length && guard++ < 220) {
             var step = Math.min(P.arc ? arcStep : straightStep, length - d);
             var prev = d;
@@ -4227,7 +4331,10 @@
         };
 
         Star.prototype.draw = function () {
-          var x = this.x, shape = this.shape, T = CFG.thickness, light = theme.light;
+          var x = this.x,
+            shape = this.shape,
+            T = CFG.thickness,
+            light = theme.light;
           x.setTransform(1, 0, 0, 1, 0, 0);
           x.clearRect(0, 0, this.c.width, this.c.height);
           if (this.w < 2 || this.h < 2) return;
@@ -4251,13 +4358,24 @@
             x.lineWidth = T + 2 * CFG.glow;
             x.strokeStyle = rgba(theme.rgb, ring);
             x.beginPath();
-            if (x.roundRect) x.roundRect(0, 0, Math.max(1, this.w - T), Math.max(1, this.h - T), shape.r);
+            if (x.roundRect)
+              x.roundRect(
+                0,
+                0,
+                Math.max(1, this.w - T),
+                Math.max(1, this.h - T),
+                shape.r,
+              );
             else x.rect(0, 0, Math.max(1, this.w - T), Math.max(1, this.h - T));
             x.stroke();
           }
 
           /* when nearly still (reduced motion) keep a small resting glow */
-          var still = clamp(1 - speed / Math.max(1, (total / CFG.duration) * 0.6), 0, 1);
+          var still = clamp(
+            1 - speed / Math.max(1, (total / CFG.duration) * 0.6),
+            0,
+            1,
+          );
           var rest = (10 + 14 * CFG.glow + T * 2) * still;
           for (i = 0; i < CFG.stars; i++) {
             var head = this.phase + i * spacing;
@@ -4271,7 +4389,8 @@
           for (i = 0; i < this.pulses.length; i++) {
             var pl = this.pulses[i];
             var fade = Math.pow(1 - pl.age / PULSE, 2);
-            var travel = (total / 2) * (1 - Math.pow(1 - Math.min(1, pl.age / 0.5), 2));
+            var travel =
+              (total / 2) * (1 - Math.pow(1 - Math.min(1, pl.age / 0.5), 2));
             var tail = Math.min(travel, total * 0.16);
             for (way = 1; way >= -1; way -= 2) {
               var front = pl.origin + way * travel;
@@ -4360,11 +4479,14 @@
             wake();
           });
           el.addEventListener("pointerdown", function (e) {
-            if (!s.shape || (e.button !== 0 && e.pointerType === "mouse")) return;
+            if (!s.shape || (e.button !== 0 && e.pointerType === "mouse"))
+              return;
             var r = el.getBoundingClientRect();
             var px = (e.clientX - r.left) * (r.width ? s.w / r.width : 1);
             var py = (e.clientY - r.top) * (r.height ? s.h / r.height : 1);
-            s.pulse(project(s.shape, px - CFG.thickness / 2, py - CFG.thickness / 2));
+            s.pulse(
+              project(s.shape, px - CFG.thickness / 2, py - CFG.thickness / 2),
+            );
           });
           el.addEventListener("click", function (e) {
             if (e.detail === 0 && s.shape) s.pulse(s.phase); // keyboard activation
@@ -4424,22 +4546,32 @@
         window.StarBorder = { attach: attach, scan: scan };
       })();
     </script>
-  
 
     <script>
       /* Pause the contact background video while it is off-screen (saves CPU/GPU) */
       (function () {
         var v = document.querySelector(".contact-bg-video");
         if (!v || !("IntersectionObserver" in window)) return;
-        new IntersectionObserver(function (entries) {
-          entries.forEach(function (e) {
-            if (e.isIntersecting) {
-              var pr = v.play();
-              if (pr && pr.catch) pr.catch(function () {});
-            } else v.pause();
-          });
-        }, { threshold: 0.05 }).observe(v);
+        new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting) {
+                var pr = v.play();
+                if (pr && pr.catch) pr.catch(function () {});
+              } else v.pause();
+            });
+          },
+          { threshold: 0.05 },
+        ).observe(v);
       })();
     </script>
-</body>
+        <script>
+      /* attach the running golden star border to the social icons */
+      document.querySelectorAll(".social-circle").forEach(function (el) {
+        window.StarBorder && window.StarBorder.attach(el);
+      });
+    </script>
+  </body>
+</html>
+  </body>
 </html>
