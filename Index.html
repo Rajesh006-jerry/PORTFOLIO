@@ -1980,17 +1980,6 @@
         font-size: 0.875rem;
         font-weight: 500;
       }
-      .field-box {
-        width: 100%;
-        border-radius: 0.75rem; /* star border follows this radius */
-      }
-      .field-box > input,
-      .field-box > textarea {
-        display: block;
-      }
-      .field-box > .sb-light {
-        z-index: 1; /* inputs are opaque: draw the star above them (clicks pass through) */
-      }
       .contact-form-field input,
       .contact-form-field textarea {
         width: 100%;
@@ -3109,17 +3098,17 @@
               <div class="contact-form-row">
                 <div class="contact-form-field">
                   <label>Your Name</label>
-                  <div class="field-box"><input type="text" placeholder="Your full name" /></div>
+                  <input type="text" placeholder="Your full name" />
                 </div>
                 <div class="contact-form-field">
                   <label>Email address</label>
-                  <div class="field-box"><input type="email" placeholder="Your email address" /></div>
+                  <input type="email" placeholder="Your email address" />
                 </div>
               </div>
 
               <div class="contact-form-field">
                 <label>Message</label>
-                <div class="field-box"><textarea placeholder="Write something...." rows="7"></textarea></div>
+                <textarea placeholder="Write something...." rows="7"></textarea>
               </div>
 
               <button type="submit" class="contact-submit">Send Message</button>
@@ -3939,7 +3928,6 @@
           ".footer-card",
           ".project-image-col",
           ".contact-form-col .contact-form",
-          ".field-box",
         ].join(",");
 
         var CFG = {
