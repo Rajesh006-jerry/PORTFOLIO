@@ -513,6 +513,10 @@
       }
       /* Mobile hero (transform needs !important: the intro script sets it inline) */
       @media (max-width: 767px) {
+        .hero {
+          min-height: 100vh;
+          min-height: 100svh; /* match the visible screen, not the area behind the URL bar */
+        }
         .hero-center {
           width: 100vw;
           max-width: 100vw;
@@ -3817,15 +3821,18 @@
 
           var H = hero.offsetHeight;
           var titleTop = nav.offsetHeight + GAP_TOP;
-          center.style.marginTop =
-            titleTop - (H * 0.2 - center.offsetHeight / 2) + "px";
           var bottom = titleTop + center.offsetHeight + sub.offsetHeight;
           var top = bottom + GAP;
           var w = Math.min(
             window.innerWidth * 0.98,
             Math.max(window.innerWidth * 0.85, (H - top) / 1.4218),
           );
-          img.style.setProperty("--hero-head-top", top + "px");
+          /* leftover space when the image is width-capped on tall phones:
+             push the text down so it sits right above the head */
+          var extra = Math.max(0, H - top - w * 1.4218);
+          center.style.marginTop =
+            titleTop - (H * 0.2 - center.offsetHeight / 2) + extra + "px";
+          img.style.setProperty("--hero-head-top", top + extra + "px");
           img.style.setProperty("--hero-img-w", w + "px");
         }
 
