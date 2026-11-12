@@ -665,6 +665,16 @@
         }
       }
 
+      /* ===== Gradient text (navbar logo) ===== */
+      .navbar-logo .gradient-text__content {
+        display: inline-block;
+        background-image: var(--gt-gradient, linear-gradient(90deg, #5227ff, #ff9ffc, #b497cf));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+      }
+
       .navbar-links {
         display: none;
         align-items: center;
@@ -2815,7 +2825,7 @@
   <body>
     <!-- NAVBAR -->
     <nav class="navbar" id="navbar">
-      <div class="navbar-logo">Rajesh S</div>
+      <div class="navbar-logo"><span class="gradient-text__content" id="navGradientText">Rajesh S</span></div>
 
       <div class="navbar-links">
         <a href="#home">Home</a>
@@ -4349,5 +4359,42 @@
         window.StarBorder = { attach: attach, scan: scan };
       })();
     </script>
-  </body>
+  
+    <script>
+      /* Gradient text: Rajesh S (ported from GradientText, variant="linear") */
+      (function () {
+        var el = document.getElementById("navGradientText");
+        if (!el) return;
+        var colors = ["#5227FF","#FF9FFC","#B497CF","#40ffaa","#4079ff","#ffd93d","#ff6b6b","#06b6d4"];
+        var speed = 3, scale = 3, angle = 90, yoyo = true;
+        var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var loop = colors.concat(colors[0]);
+        var period = 100 * scale;
+        var time = 0, last = performance.now(), visible = true;
+
+        function paint() {
+          var cycle = time / speed, offset;
+          if (yoyo) {
+            var swing = cycle % 2, t = swing < 1 ? swing : 2 - swing;
+            offset = (0.5 - Math.cos(Math.PI * t) / 2) * (period - 100);
+          } else {
+            offset = (cycle % 1) * period;
+          }
+          var stops = loop.map(function (c, i) {
+            return c + " " + ((i / (loop.length - 1)) * period - offset).toFixed(2) + "%";
+          });
+          el.style.setProperty("--gt-gradient", "repeating-linear-gradient(" + angle + "deg, " + stops.join(", ") + ")");
+        }
+        function tick(now) {
+          time += Math.min(0.05, Math.max(0, (now - last) / 1000));
+          last = now;
+          if (visible) paint();
+          if (!reduce) requestAnimationFrame(tick);
+        }
+        new IntersectionObserver(function (e) { visible = e.some(function (x) { return x.isIntersecting; }); }).observe(el);
+        paint();
+        if (!reduce) requestAnimationFrame(tick);
+      })();
+    </script>
+</body>
 </html>
