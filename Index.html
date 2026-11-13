@@ -3081,6 +3081,112 @@
           animation: none;
         }
       }
+
+      /* ==========================================================================
+   LOGOLOOP — moving card loop for #highlights .e-grid
+   ========================================================================== */
+      .logoloop {
+        --logoloop-gap: 22px;
+        --logoloop-logoHeight: 28px;
+        --logoloop-pad: 0px;
+        position: relative;
+        overflow: hidden;
+        padding-top: var(--logoloop-pad);
+        padding-bottom: var(--logoloop-pad);
+        -webkit-tap-highlight-color: transparent;
+        width: 100%;
+        mask-image: linear-gradient(
+          to right,
+          transparent 0,
+          #000 6%,
+          #000 94%,
+          transparent 100%
+        );
+        -webkit-mask-image: linear-gradient(
+          to right,
+          transparent 0,
+          #000 6%,
+          #000 94%,
+          transparent 100%
+        );
+      }
+      .logoloop[data-draggable] {
+        cursor: grab;
+        touch-action: pan-y pinch-zoom;
+      }
+      .logoloop[data-dragging],
+      .logoloop[data-dragging] * {
+        cursor: grabbing;
+      }
+      .logoloop__track {
+        position: relative;
+        z-index: 0;
+        display: flex;
+        width: max-content;
+        will-change: transform;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      .logoloop__list {
+        display: flex;
+        align-items: stretch;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .logoloop__item {
+        position: relative;
+        flex: 0 0 auto;
+        margin-right: var(--logoloop-gap);
+        font-size: var(--logoloop-logoHeight);
+        line-height: 1;
+        display: flex;
+      }
+      .logoloop__item > .e-card {
+        width: 20rem;
+        height: 100%;
+        margin: 0;
+        transition:
+          transform 0.35s ease,
+          border-color 0.35s ease,
+          box-shadow 0.35s ease;
+      }
+      .logoloop__item > .e-card:hover {
+        transform: translateY(-6px);
+        border-color: var(--e-accent);
+        box-shadow: 0 12px 32px rgba(var(--a-rgb), 0.18);
+      }
+      html[data-theme="light"] .logoloop__item > .e-card {
+        background: linear-gradient(145deg, #fff, #dfe2e7);
+        border-color: rgba(224, 175, 34, 0.6);
+        box-shadow: 0 14px 36px rgba(60, 70, 90, 0.12);
+      }
+      /* Mounted state: hide grid, show loop */
+      .e-grid.logoloop-mounted {
+        display: none !important;
+      }
+      @media (max-width: 767px) {
+        .logoloop {
+          --logoloop-gap: 14px;
+          mask-image: linear-gradient(
+            to right,
+            transparent 0,
+            #000 10%,
+            #000 90%,
+            transparent 100%
+          );
+          -webkit-mask-image: linear-gradient(
+            to right,
+            transparent 0,
+            #000 10%,
+            #000 90%,
+            transparent 100%
+          );
+        }
+        .logoloop__item > .e-card {
+          width: 16.5rem;
+        }
+      }
     </style>
   </head>
   <body>
@@ -3613,7 +3719,7 @@
           demoLink:
             "https://rajesh006-jerry.github.io/Employee-management-system/Employee.html",
           githubLink:
-            "https://github.com/Rajesh006-jerry/Employee-management-system/blob/main/Employee.html",
+            "https://rajesh006-jerry.github.io/Employee-management-system/Employee.html",
         },
         {
           name: "SoftMeet - Appointment Booking & Business Hub",
@@ -3628,7 +3734,7 @@
           demoLink:
             "https://rajesh006-jerry.github.io/Appoinment-booking-service/appoinment.html",
           githubLink:
-            "https://github.com/Rajesh006-jerry/Appoinment-booking-service/blob/main/appoinment.html",
+            "https://rajesh006-jerry.github.io/Appoinment-booking-service/appoinment.html",
         },
         {
           name: "Emergency Medical Store",
@@ -3643,7 +3749,7 @@
           demoLink:
             "https://rajesh006-jerry.github.io/Emergency-Service/Emergency-Medical-Service.html",
           githubLink:
-            "https://github.com/Rajesh006-jerry/Emergency-Service/blob/main/Emergency-Medical-Service.html",
+            "https://rajesh006-jerry.github.io/Emergency-Service/Emergency-Medical-Service.html",
         },
       ];
 
@@ -3907,11 +4013,14 @@
           if (!pts.length) return;
           const mobile = window.innerWidth < 760;
 
-          // Balanced curve: the control point moves outward, but limited
-          // to keep the bend short and the path entirely within the empty middle track.
-          let amp = 30;
-          if (!mobile) {
-            amp = 55; // Short, neat bend
+          // Longer, smoother bend in the content path
+          let amp = 55;
+          if (mobile) {
+            amp = 28;
+          } else if (r.width > 1200) {
+            amp = 90;
+          } else {
+            amp = 70;
           }
 
           let prev = [pts[0][0], 0];
@@ -3923,7 +4032,7 @@
           allPts.forEach((p, i) => {
             const dir = i % 2 ? 1 : -1;
             const dy = (p[1] - prev[1]) / 2;
-            // Create an elegant curve with short, controlled bends
+            // Create an elegant curve with longer, controlled bends
             d += `C ${prev[0] + amp * dir} ${prev[1] + dy}, ${p[0] + amp * dir} ${p[1] - dy}, ${p[0]} ${p[1]} `;
             prev = p;
           });
@@ -4021,6 +4130,392 @@
         );
         e.target.reset();
       });
+    </script>
+
+    <!-- ==========================================================================
+     LOGOLOOP PORT — Vanilla JS port of the React LogoLoop component.
+     Auto-hooks into all ".e-grid" containers inside "#highlights" and
+     rebuilds them as moving card loops (drag + hover + intro).
+     ========================================================================== -->
+    <script>
+      (function () {
+        "use strict";
+
+        const SMOOTH_TAU = 0.25;
+        const GLIDE_TAU = 0.8;
+        const DRAG_THRESHOLD = 6;
+        const MAX_FLING = 4000;
+
+        const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+        function createEngine(root, track, config) {
+          const query =
+            typeof window.matchMedia === "function"
+              ? window.matchMedia("(prefers-reduced-motion: reduce)")
+              : null;
+          const st = {
+            offset: 0,
+            velocity: 0,
+            period: 0,
+            length: 0,
+            box: [0, 0],
+            items: [],
+            hovered: false,
+            pointer: null,
+            pointerInside: false,
+            drag: null,
+            glide: false,
+            suppressUntil: 0,
+            pressedAt: -1e9,
+            raf: 0,
+            last: 0,
+            reduced: !!query?.matches,
+            destroyed: false,
+            visible: true,
+          };
+
+          const collect = () => {
+            const items = [];
+            Array.from(track.children).forEach((list) => {
+              Array.from(list.children).forEach((el) => {
+                items.push({ el, center: 0, size: 0 });
+              });
+            });
+            st.items = items;
+          };
+
+          const measure = () => {
+            const lists = track.children;
+            if (!lists.length || !st.items.length) {
+              st.period = 0;
+              return;
+            }
+            track.style.transform = "none";
+            const rootRect = root.getBoundingClientRect();
+            const k = root.offsetWidth
+              ? rootRect.width / root.offsetWidth || 1
+              : 1;
+            const trackRect = track.getBoundingClientRect();
+            const origin = trackRect.left;
+            for (const it of st.items) {
+              const r = it.el.getBoundingClientRect();
+              it.center = (r.left + r.width / 2 - origin) / k;
+              it.size = r.width / k;
+            }
+            const a = lists[0].getBoundingClientRect();
+            const b = lists[1] ? lists[1].getBoundingClientRect() : null;
+            st.period = (b ? b.left - a.left : a.width) / k;
+            st.box = [root.offsetWidth, root.offsetHeight];
+            st.length = root.clientWidth;
+          };
+
+          const render = () => {
+            const L = st.length;
+            if (L <= 0) return;
+            const T = -st.offset;
+            track.style.transform = `translate3d(${T.toFixed(2)}px, 0, 0)`;
+          };
+
+          const frame = (now) => {
+            st.raf = 0;
+            if (st.destroyed || st.period <= 0) return;
+            const cfg = config.current;
+            const dt = st.last ? clamp((now - st.last) / 1000, 0, 0.1) : 0;
+            st.last = now;
+            const P = st.period;
+            let busy = false;
+
+            const target = st.reduced ? 0 : cfg.speed;
+            if (st.drag?.active) {
+              busy = true;
+            } else {
+              const tau = st.glide ? GLIDE_TAU : SMOOTH_TAU;
+              st.velocity += (target - st.velocity) * (1 - Math.exp(-dt / tau));
+              if (st.glide && Math.abs(st.velocity - target) < 2)
+                st.glide = false;
+              if (Math.abs(st.velocity - target) < 0.01) st.velocity = target;
+              st.offset += st.velocity * dt;
+              if (st.velocity !== 0 || target !== 0) busy = true;
+            }
+
+            if (!st.drag?.active) {
+              const wrapped = ((st.offset % P) + P) % P;
+              st.offset = wrapped;
+            }
+            render();
+            if (busy && st.visible && !st.destroyed)
+              st.raf = requestAnimationFrame(frame);
+          };
+
+          const wake = () => {
+            if (st.raf || st.destroyed) return;
+            st.last = 0;
+            st.raf = requestAnimationFrame(frame);
+          };
+
+          const local = (e) => {
+            const r = root.getBoundingClientRect();
+            const k = root.offsetWidth ? r.width / root.offsetWidth || 1 : 1;
+            return [(e.clientX - r.left) / k, (e.clientY - r.top) / k];
+          };
+
+          const onEnter = () => {
+            st.hovered = true;
+            wake();
+          };
+          const onLeave = () => {
+            st.hovered = false;
+            wake();
+          };
+          const onDown = (e) => {
+            st.pressedAt = performance.now();
+            if (
+              !config.current.draggable ||
+              (e.pointerType === "mouse" && e.button !== 0)
+            )
+              return;
+            const [x, y] = local(e);
+            st.drag = {
+              id: e.pointerId,
+              x,
+              y,
+              active: false,
+              samples: [],
+              anchor: 0,
+              offset: 0,
+            };
+          };
+          const onMove = (e) => {
+            const d = st.drag;
+            if (d && e.pointerId === d.id) {
+              const [x, y] = local(e);
+              const along = x - d.x;
+              const across = y - d.y;
+              if (!d.active) {
+                if (Math.abs(along) < DRAG_THRESHOLD) return wake();
+                if (Math.abs(across) > Math.abs(along)) {
+                  st.drag = null;
+                  return wake();
+                }
+                d.active = true;
+                d.anchor = along;
+                d.offset = st.offset;
+                st.velocity = 0;
+                try {
+                  root.setPointerCapture(e.pointerId);
+                } catch {}
+                root.setAttribute("data-dragging", "");
+              }
+              const next = d.offset - (along - d.anchor);
+              const P = st.period || 1;
+              st.offset = ((next % P) + P) % P;
+              d.offset += st.offset - next;
+              const now = performance.now();
+              d.samples.push([now, along]);
+              while (d.samples.length > 2 && now - d.samples[0][0] > 100)
+                d.samples.shift();
+            }
+            wake();
+          };
+          const endDrag = (e, cancelled) => {
+            const d = st.drag;
+            if (!d || e.pointerId !== d.id) return;
+            st.drag = null;
+            if (!d.active) return;
+            root.removeAttribute("data-dragging");
+            try {
+              root.releasePointerCapture(e.pointerId);
+            } catch {}
+            const now = performance.now();
+            st.suppressUntil = now + 400;
+            let v = 0;
+            const s = d.samples;
+            if (!cancelled && s.length > 1) {
+              const [t0, a0] = s[0];
+              const [t1, a1] = s[s.length - 1];
+              if (t1 > t0 && now - t1 < 80)
+                v = clamp(
+                  (-(a1 - a0) / (t1 - t0)) * 1000,
+                  -MAX_FLING,
+                  MAX_FLING,
+                );
+            }
+            st.velocity = v;
+            st.glide = Math.abs(v) > 30;
+            wake();
+          };
+          const onUp = (e) => endDrag(e, false);
+          const onCancel = (e) => endDrag(e, true);
+          const onClick = (e) => {
+            if (performance.now() < st.suppressUntil) {
+              e.preventDefault();
+              e.stopPropagation();
+              st.suppressUntil = 0;
+            }
+          };
+          const onDragStart = (e) => {
+            if (config.current.draggable) e.preventDefault();
+          };
+
+          root.addEventListener("pointerenter", onEnter);
+          root.addEventListener("pointerleave", onLeave);
+          root.addEventListener("pointerdown", onDown);
+          root.addEventListener("pointermove", onMove);
+          root.addEventListener("pointerup", onUp);
+          root.addEventListener("pointercancel", onCancel);
+          root.addEventListener("lostpointercapture", onCancel);
+          root.addEventListener("click", onClick, true);
+          root.addEventListener("dragstart", onDragStart);
+
+          let resizeObserver = null;
+          if (typeof ResizeObserver !== "undefined") {
+            resizeObserver = new ResizeObserver(() => {
+              measure();
+              if (st.period > 0) render();
+              wake();
+            });
+          }
+          let intersection = null;
+          if (typeof IntersectionObserver !== "undefined") {
+            intersection = new IntersectionObserver(
+              (entries) => {
+                const entry = entries[entries.length - 1];
+                st.visible = entry.isIntersecting;
+                if (st.visible) wake();
+              },
+              { threshold: 0.05 },
+            );
+            intersection.observe(root);
+          }
+
+          const refresh = () => {
+            collect();
+            measure();
+            if (resizeObserver) {
+              for (const el of [root, track.children[0]]) {
+                if (el) resizeObserver.observe(el);
+              }
+            }
+            st.last = 0;
+            if (st.raf) cancelAnimationFrame(st.raf);
+            st.raf = 0;
+            if (st.period > 0) frame(performance.now());
+          };
+
+          const destroy = () => {
+            st.destroyed = true;
+            if (st.raf) cancelAnimationFrame(st.raf);
+            root.removeEventListener("pointerenter", onEnter);
+            root.removeEventListener("pointerleave", onLeave);
+            root.removeEventListener("pointerdown", onDown);
+            root.removeEventListener("pointermove", onMove);
+            root.removeEventListener("pointerup", onUp);
+            root.removeEventListener("pointercancel", onCancel);
+            root.removeEventListener("lostpointercapture", onCancel);
+            root.removeEventListener("click", onClick, true);
+            root.removeEventListener("dragstart", onDragStart);
+            resizeObserver?.disconnect();
+            intersection?.disconnect();
+          };
+
+          return { refresh, wake, destroy, state: st };
+        }
+
+        function mount(grid, options) {
+          const opts = Object.assign(
+            {
+              speed: 40,
+              gap: 22,
+              draggable: true,
+              ariaLabel: "Card loop",
+            },
+            options || {},
+          );
+
+          // Collect cards from the grid BEFORE we hide it
+          const cards = Array.from(grid.children);
+          if (!cards.length) return;
+
+          // Build loop wrapper
+          const wrapper = document.createElement("div");
+          wrapper.className = "logoloop";
+          wrapper.setAttribute("role", "region");
+          wrapper.setAttribute("aria-label", opts.ariaLabel);
+          wrapper.setAttribute("data-draggable", opts.draggable ? "" : "");
+          wrapper.style.setProperty("--logoloop-gap", opts.gap + "px");
+
+          const track = document.createElement("div");
+          track.className = "logoloop__track";
+          wrapper.appendChild(track);
+
+          // Build list A (with the original cards)
+          const listA = document.createElement("ul");
+          listA.className = "logoloop__list";
+          listA.setAttribute("role", "list");
+          cards.forEach((c) => {
+            c.classList.remove("e-reveal", "in"); // remove reveal state
+            const li = document.createElement("li");
+            li.className = "logoloop__item";
+            li.setAttribute("role", "listitem");
+            li.appendChild(c);
+            listA.appendChild(li);
+          });
+          track.appendChild(listA);
+
+          // Build list B (clone of A)
+          const listB = listA.cloneNode(true);
+          listB.setAttribute("aria-hidden", "true");
+          track.appendChild(listB);
+
+          // Insert wrapper AFTER the grid, then hide the grid
+          grid.parentNode.insertBefore(wrapper, grid);
+          grid.classList.add("logoloop-mounted");
+
+          const config = {
+            current: { speed: opts.speed, draggable: opts.draggable },
+          };
+          const engine = createEngine(wrapper, track, config);
+
+          // Wait one frame so layout is measurable
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => engine.refresh());
+          });
+
+          window.addEventListener("resize", () => engine.refresh());
+          return engine;
+        }
+
+        let booted = false;
+        function boot() {
+          const grids = document.querySelectorAll("#highlights .e-grid");
+          if (!grids.length) return false;
+          grids.forEach((g) => {
+            if (g.dataset.loopMounted === "1") return;
+            g.dataset.loopMounted = "1";
+            mount(g, { speed: 40, gap: 22, draggable: true });
+          });
+          booted = true;
+          return true;
+        }
+
+        // Try immediately
+        if (document.readyState !== "loading") boot();
+        document.addEventListener("DOMContentLoaded", boot);
+        window.addEventListener("load", boot);
+
+        // Retry polling for up to 5s until #highlights exists (enhancements.js injects it)
+        let tries = 0;
+        const iv = setInterval(() => {
+          tries++;
+          if (boot() || tries > 100) clearInterval(iv);
+        }, 50);
+
+        // Also retry when DOM changes (enhancements.js inserts #highlights)
+        const obs = new MutationObserver(() => {
+          if (boot()) obs.disconnect();
+        });
+        obs.observe(document.body, { childList: true, subtree: true });
+      })();
     </script>
 
     <!-- Mobile Hero Spacing logic -->
