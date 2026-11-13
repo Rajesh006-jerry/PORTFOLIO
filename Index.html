@@ -3113,6 +3113,27 @@
         }
       }
 
+      /* ===== Footer medal: star border runs ON the medal (along its inner ring) ===== */
+      .rc-seal-core {
+        position: absolute;
+        z-index: 3;
+        left: 2.66cqw; /* seal is 19cqw wide, starts 6.5cqw from the badge top */
+        top: 9.16cqw;
+        width: 13.68cqw; /* 72% of the seal = the dark inner ring */
+        height: 13.68cqw;
+        border-radius: 50%;
+        overflow: hidden; /* keeps the glow inside the medal */
+        pointer-events: none;
+      }
+      @media (max-width: 820px) {
+        .rc-seal-core {
+          left: 14%;
+          top: 14%;
+          width: 72%;
+          height: 72%;
+        }
+      }
+
       /* ===== Lock desktop hero position (PORTFOLIO sits lower, like the reference screenshot) ===== */
       @media (min-width: 768px) {
         .hero-center {
@@ -4244,6 +4265,7 @@
           ".btn-outline",
           ".card-connect",
           ".rc-btn",
+          ".rc-seal-core",
           ".navbar-resume",
           ".mobile-resume",
           ".about-card",
@@ -4329,7 +4351,9 @@
 
         /* soft glow drawn once, then stamped with drawImage (much cheaper
            than building a radial gradient for every star on every frame) */
-        function buildSprite() {
+        function buildSprite(rgb) {
+          var own = !!rgb;
+          rgb = rgb || theme.rgb;
           var reach = (12 + 40 * CFG.glow) * (theme.light ? 0.8 : 1);
           var size = Math.ceil(reach * 2);
           var c = document.createElement("canvas");
@@ -4343,15 +4367,16 @@
             size / 2,
             size / 2,
           );
-          grad.addColorStop(0, rgba(theme.rgb, 1));
-          grad.addColorStop(0.2, rgba(theme.rgb, 0.4));
-          grad.addColorStop(0.5, rgba(theme.rgb, 0.1));
-          grad.addColorStop(1, rgba(theme.rgb, 0));
+          grad.addColorStop(0, rgba(rgb, 1));
+          grad.addColorStop(0.2, rgba(rgb, 0.4));
+          grad.addColorStop(0.5, rgba(rgb, 0.1));
+          grad.addColorStop(1, rgba(rgb, 0));
           g.fillStyle = grad;
           g.fillRect(0, 0, size, size);
-          theme.sprite = c;
+          if (!own) theme.sprite = c;
           theme.reach = reach;
           theme.alpha = (theme.light ? 0.5 : 0.4) * CFG.glow;
+          return c;
         }
 
         function refreshTheme() {
@@ -4361,6 +4386,9 @@
           theme.light = root.getAttribute("data-theme") === "light";
           theme.rgb = toRgb(css || "#e0af22");
           buildSprite();
+          if (typeof list !== "undefined")
+            for (var k = 0; k < list.length; k++)
+              if (list[k].rgb) list[k].sprite = buildSprite(list[k].rgb);
           wake();
         }
 
@@ -4449,6 +4477,10 @@
           this.x = this.c.getContext("2d");
           el.classList.add("sb");
           el.insertBefore(this.c, el.firstChild);
+          var tint = el.getAttribute("data-sb-color");
+          this.rgb = tint ? toRgb(tint) : null; // own star colour (optional)
+          this.sprite = this.rgb ? buildSprite(this.rgb) : null;
+          this.inset = parseFloat(el.getAttribute("data-sb-inset")) || 0; // px inside the edge
 
           this.w = 0;
           this.h = 0;
@@ -4498,10 +4530,14 @@
           );
 
           var radius = parseFloat(cs.borderTopLeftRadius) || 0;
+          var rr = cs.borderTopLeftRadius;
+          if (rr.indexOf("%") > -1)
+            radius = (Math.min(this.w, this.h) * radius) / 100; // 50% = circle
+          var I = this.inset;
           this.shape = outline(
-            Math.max(1, this.w - T),
-            Math.max(1, this.h - T),
-            radius - T / 2,
+            Math.max(1, this.w - T - 2 * I),
+            Math.max(1, this.h - T - 2 * I),
+            Math.max(0, radius - T / 2 - I),
           );
           if (!this.ready) {
             this.phase = Math.random() * this.shape.total; // buttons don't move in sync
@@ -4547,7 +4583,7 @@
           var x = this.x,
             shape = this.shape,
             light = theme.light,
-            rgb = theme.rgb;
+            rgb = this.rgb || theme.rgb;
           var straightStep = this.big ? 10 : 4; // coarse on straight edges
           var arcStep = 2; // fine on corners so the glow follows the curve exactly
           var glowW = 2 + 6 * CFG.glow;
@@ -4588,7 +4624,13 @@
           if (intensity <= 0) return;
           var r = theme.reach;
           this.x.globalAlpha = Math.min(1, theme.alpha * intensity);
-          this.x.drawImage(theme.sprite, px - r, py - r, r * 2, r * 2);
+          this.x.drawImage(
+            this.sprite || theme.sprite,
+            px - r,
+            py - r,
+            r * 2,
+            r * 2,
+          );
           this.x.globalAlpha = 1;
         };
 
@@ -4600,7 +4642,7 @@
           x.setTransform(1, 0, 0, 1, 0, 0);
           x.clearRect(0, 0, this.c.width, this.c.height);
           if (this.w < 2 || this.h < 2) return;
-          var off = (this.bleed + T / 2) * this.dpr;
+          var off = (this.bleed + T / 2 + this.inset) * this.dpr;
           x.setTransform(this.dpr, 0, 0, this.dpr, off, off);
           x.globalCompositeOperation = light ? "source-over" : "lighter";
           x.lineCap = "butt";
@@ -4618,17 +4660,23 @@
           var ring = this.flash * (light ? 0.4 : 0.32);
           if (ring > 0.005) {
             x.lineWidth = T + 2 * CFG.glow;
-            x.strokeStyle = rgba(theme.rgb, ring);
+            x.strokeStyle = rgba(this.rgb || theme.rgb, ring);
             x.beginPath();
             if (x.roundRect)
               x.roundRect(
                 0,
                 0,
-                Math.max(1, this.w - T),
-                Math.max(1, this.h - T),
+                Math.max(1, this.w - T - 2 * this.inset),
+                Math.max(1, this.h - T - 2 * this.inset),
                 shape.r,
               );
-            else x.rect(0, 0, Math.max(1, this.w - T), Math.max(1, this.h - T));
+            else
+              x.rect(
+                0,
+                0,
+                Math.max(1, this.w - T - 2 * this.inset),
+                Math.max(1, this.h - T - 2 * this.inset),
+              );
             x.stroke();
           }
 
@@ -4747,7 +4795,11 @@
             var px = (e.clientX - r.left) * (r.width ? s.w / r.width : 1);
             var py = (e.clientY - r.top) * (r.height ? s.h / r.height : 1);
             s.pulse(
-              project(s.shape, px - CFG.thickness / 2, py - CFG.thickness / 2),
+              project(
+                s.shape,
+                px - CFG.thickness / 2 - s.inset,
+                py - CFG.thickness / 2 - s.inset,
+              ),
             );
           });
           el.addEventListener("click", function (e) {
@@ -4825,6 +4877,29 @@
           },
           { threshold: 0.05 },
         ).observe(v);
+      })();
+    </script>
+    <script>
+      /* Footer medal: add the star-border ring on the RS seal (card is built by enhancements.js) */
+      (function () {
+        function add() {
+          var badges = document.querySelectorAll(".rc-badge");
+          for (var i = 0; i < badges.length; i++) {
+            var b = badges[i];
+            if (b.querySelector(".rc-seal-core")) continue;
+            var ring = document.createElement("div");
+            ring.className = "rc-seal-core";
+            ring.setAttribute("aria-hidden", "true");
+            ring.setAttribute("data-sb-color", "#fffbe6"); // cream light on the gold
+            ring.setAttribute("data-sb-inset", "2"); // px inside the ring
+            b.appendChild(ring);
+          }
+          if (window.StarBorder) window.StarBorder.scan();
+        }
+        if (document.readyState === "loading")
+          document.addEventListener("DOMContentLoaded", add);
+        else add();
+        window.addEventListener("load", add);
       })();
     </script>
   </body>
