@@ -65,51 +65,235 @@
       { passive: true },
     );
 
-    // 3. New content: stats + what I deliver (My Process section removed)
-    var deliver = [
-      [
-        "Clean REST APIs",
-        "RESTful Express APIs with middleware, validation, webhooks and microservice-style structure, tested in Postman.",
-      ],
-      [
-        "Secure Auth",
-        "JWT authentication, role-based access control (RBAC) and protected CRUD operations.",
-      ],
-      [
-        "Responsive React UI",
-        "Reusable React and Next.js components (SSR/SSG), styled with Tailwind CSS or Bootstrap for every screen size.",
-      ],
-      [
-        "Deploy & Maintain",
-        "Git and GitHub workflows, CI/CD with GitHub Actions, and deployment on Vercel.",
-      ],
+    // 3. Certificates
+    //    Finds certificate1..4, checks it is a real file, and fills each card
+    //    edge-to-edge. PDFs are rendered to an image (no toolbar, no gaps).
+    var CERT_COUNT = 4;
+    var CERT_EXTS = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".pdf",
+      ".JPG",
+      ".JPEG",
+      ".PNG",
+      ".WEBP",
+      ".PDF",
     ];
-    
-    var sec = document.createElement("section");
-    sec.id = "highlights";
-    sec.className = "extra";
-    sec.innerHTML =
-      '<div class="extra-inner">' +
-      '<p class="extra-eyebrow">What I bring</p><h2 class="extra-title">Built for real users</h2>' +
-      '<div class="e-grid">' +
-      deliver
-        .map(function (d, i) {
+    var PDFJS_SRC =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    var PDFJS_WORKER =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    function certCandidates(n) {
+      var bases = [
+        "certificate" + n,
+        "Certificate" + n,
+        "certificate-" + n,
+        "certificate_" + n,
+        "certificate " + n,
+        "Certificate " + n,
+      ];
+      var urls = [];
+      bases.forEach(function (b) {
+        CERT_EXTS.forEach(function (e) {
+          urls.push(encodeURI(b + e));
+        });
+      });
+      return urls;
+    }
+
+    // Identify the real file type from its first bytes
+    function sniff(buf) {
+      var b = new Uint8Array(buf);
+      if (!b.length) return "empty";
+      if (b[0] === 0xff && b[1] === 0xd8) return "image"; // JPEG
+      if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47)
+        return "image"; // PNG
+      if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return "image"; // GIF
+      if (
+        b[0] === 0x52 &&
+        b[1] === 0x49 &&
+        b[2] === 0x46 &&
+        b[3] === 0x46 &&
+        b[8] === 0x57 &&
+        b[9] === 0x45
+      )
+        return "image"; // WebP
+      if (b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46)
+        return "pdf";
+      if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) {
+        var brand = String.fromCharCode(b[8], b[9], b[10], b[11]);
+        if (brand === "avif") return "image";
+        return "heic";
+      }
+      if (b[0] === 0x3c) return "html";
+      return "unknown";
+    }
+
+    // Load pdf.js once (only when a PDF is found)
+    var pdfJsPromise = null;
+    function loadPdfJs() {
+      if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+      if (pdfJsPromise) return pdfJsPromise;
+      pdfJsPromise = new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = PDFJS_SRC;
+        s.onload = function () {
+          window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+          resolve(window.pdfjsLib);
+        };
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      return pdfJsPromise;
+    }
+
+    // Render page 1 of a PDF to a JPEG data URL
+    function pdfToImage(buf) {
+      return loadPdfJs()
+        .then(function (lib) {
+          return lib.getDocument({ data: new Uint8Array(buf) }).promise;
+        })
+        .then(function (pdf) {
+          return pdf.getPage(1);
+        })
+        .then(function (page) {
+          var vp = page.getViewport({ scale: 2.5 });
+          var canvas = document.createElement("canvas");
+          canvas.width = Math.floor(vp.width);
+          canvas.height = Math.floor(vp.height);
+          return page
+            .render({ canvasContext: canvas.getContext("2d"), viewport: vp })
+            .promise.then(function () {
+              return canvas.toDataURL("image/jpeg", 0.92);
+            });
+        });
+    }
+
+    // Fallback when fetch() is not allowed (for example opening via file://)
+    function tryImage(u) {
+      return new Promise(function (resolve) {
+        var im = new Image();
+        im.onload = function () {
+          resolve({ url: u, kind: "image" });
+        };
+        im.onerror = function () {
+          resolve(null);
+        };
+        im.src = u;
+      });
+    }
+
+    function checkOne(u) {
+      return fetch(u, { cache: "no-store" })
+        .then(function (res) {
+          if (!res.ok) return null;
+          return res.arrayBuffer().then(function (buf) {
+            var kind = sniff(buf.slice(0, 16));
+            if (kind === "html") return null;
+            if (kind === "pdf") {
+              return pdfToImage(buf)
+                .then(function (dataUrl) {
+                  return { url: dataUrl, kind: "image" };
+                })
+                .catch(function () {
+                  // pdf.js could not load: fall back to an embedded viewer
+                  var blob = new Blob([buf], { type: "application/pdf" });
+                  return { url: URL.createObjectURL(blob), kind: "pdf" };
+                });
+            }
+            return { url: u, kind: kind };
+          });
+        })
+        .catch(function () {
+          return tryImage(u);
+        });
+    }
+
+    function findCert(n) {
+      var urls = certCandidates(n);
+      return new Promise(function (resolve) {
+        var i = 0,
+          problem = null;
+        (function next() {
+          if (i >= urls.length) return resolve(problem);
+          checkOne(urls[i++]).then(function (r) {
+            if (!r) return next();
+            if (r.kind === "image" || r.kind === "pdf") return resolve(r);
+            problem = problem || r;
+            next();
+          });
+        })();
+      });
+    }
+
+    function certMessage(n, r) {
+      var f = "certificate" + n + ".jpg";
+      if (!r) return f + " not found. Put it in the same folder as index.html.";
+      if (r.kind === "empty")
+        return f + " is an empty (0 byte) file. Copy the original again.";
+      if (r.kind === "heic")
+        return (
+          f +
+          " is a HEIC photo renamed to .jpg. Convert it to a real JPG or PNG."
+        );
+      return f + " is not a valid image. Re-export it as JPG or PNG.";
+    }
+
+    var cs = document.createElement("style");
+    cs.textContent =
+      "html .e-card.cert-card{border:3px solid #e0af22!important;box-shadow:0 0 0 1px rgba(255,221,88,.5),0 10px 30px rgba(224,175,34,.25)!important;padding:0!important;margin:0;overflow:hidden;display:block;position:relative;aspect-ratio:7/5;min-height:0;line-height:0;border-radius:1.25rem}" +
+      "html .e-card.cert-card img{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;object-position:center;background:none;transition:transform .5s ease}" +
+      ".e-card.cert-card iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;pointer-events:none;background:#fff}" +
+      ".e-card.cert-card:hover img{transform:scale(1.04)}" +
+      ".e-card.cert-card.cert-missing{display:grid;place-items:center;padding:1rem!important;text-align:center;font-size:.85rem;line-height:1.5;opacity:.75}";
+    document.head.appendChild(cs);
+
+    var proj = $("#project");
+    var finders = [];
+    for (var n = 1; n <= CERT_COUNT; n++) finders.push(findCert(n));
+
+    Promise.all(finders).then(function (found) {
+      var cards = found
+        .map(function (r, i) {
+          var num = i + 1;
+          if (r && r.kind === "image")
+            return (
+              '<div class="e-card cert-card"><img src="' +
+              r.url +
+              '" alt="Certificate ' +
+              num +
+              '" decoding="async" draggable="false" /></div>'
+            );
+          if (r && r.kind === "pdf")
+            return (
+              '<div class="e-card cert-card"><iframe src="' +
+              r.url +
+              '#toolbar=0&navpanes=0&scrollbar=0&view=Fit" title="Certificate ' +
+              num +
+              '"></iframe></div>'
+            );
           return (
-            '<div class="e-card e-reveal"><span class="n">0' +
-            (i + 1) +
-            "</span><h3>" +
-            d[0] +
-            "</h3><p>" +
-            d[1] +
-            "</p></div>"
+            '<div class="e-card cert-card cert-missing">' +
+            certMessage(num, r) +
+            "</div>"
           );
         })
-        .join("") +
-      "</div>" +
-      "</div>";
-      
-    var proj = $("#project");
-    proj.parentNode.insertBefore(sec, proj);
+        .join("");
+
+      var sec = document.createElement("section");
+      sec.id = "highlights";
+      sec.className = "extra";
+      sec.innerHTML =
+        '<div class="extra-inner">' +
+        '<p class="extra-eyebrow">Achievements</p><h2 class="extra-title">My Certificates</h2>' +
+        '<div class="e-grid">' +
+        cards +
+        "</div></div>";
+      proj.parentNode.insertBefore(sec, proj);
+    });
 
     // 4. Reveal on scroll + count-up
     document.querySelectorAll(".project-item").forEach(function (el) {
