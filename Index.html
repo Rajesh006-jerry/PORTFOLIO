@@ -17,6 +17,7 @@
     <script src="glow-cursor.js" defer></script>
     <script src="orbit-images.js" defer></script>
     <script src="orbit-skills.js" defer></script>
+    <script src="image-loop.js" defer></script>
 
     <style>
       /* ==========================================================================
@@ -1102,7 +1103,7 @@
         padding: 1rem 0;
         background: var(--marquee-bg);
         border-top: 1px solid var(--gold-line);
-        
+
         /* Fix: Span full viewport width to prevent corner hiding */
         width: 100vw;
         position: relative;
@@ -3162,7 +3163,7 @@
       /* ==========================================================================
          14. FIX: Make the LogoLoop (What I Bring) section full-width edge-to-edge
          ========================================================================== */
-      
+
       /* 1. Remove the container restriction for the loop */
       .extra-inner {
         max-width: none !important;
@@ -3196,7 +3197,7 @@
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        overflow: hidden; 
+        overflow: hidden;
       }
 
       /* 4. Remove mobile padding on the loop wrapper */
@@ -4252,8 +4253,7 @@
               st.velocity += (target - st.velocity) * (1 - Math.exp(-dt / tau));
               if (st.glide && Math.abs(st.velocity - target) < 2)
                 st.glide = false;
-              if (Math.abs(st.velocity - target) < 0.01)
-                st.velocity = target;
+              if (Math.abs(st.velocity - target) < 0.01) st.velocity = target;
               st.offset += st.velocity * dt;
               if (st.velocity !== 0 || target !== 0) busy = true;
             }
