@@ -3206,6 +3206,267 @@
           padding-right: 0 !important;
         }
       }
+
+      /* ==========================================================================
+   THE STORY SO FAR — premium card decoration
+   ========================================================================== */
+
+      /* ===== Card base: layered gold border + cursor spotlight ===== */
+      .jr-card {
+        --mx: 50%;
+        --my: 0%;
+        position: relative;
+        overflow: hidden;
+        max-width: 480px;
+        padding: 2.6rem 2.6rem 2.4rem;
+        border-radius: 28px;
+        border: 1px solid transparent;
+        background:
+          radial-gradient(
+              420px circle at var(--mx) var(--my),
+              rgba(var(--a-rgb), 0.16),
+              transparent 60%
+            )
+            padding-box,
+          linear-gradient(
+              160deg,
+              rgba(var(--a-rgb), 0.1),
+              rgba(var(--a-rgb), 0.02) 55%
+            )
+            padding-box,
+          var(--e-bg) padding-box,
+          linear-gradient(
+              140deg,
+              rgba(var(--a-rgb), 0.95),
+              rgba(var(--a-rgb), 0.18) 38%,
+              rgba(var(--a-rgb), 0.12) 62%,
+              rgba(var(--a-rgb), 0.8)
+            )
+            border-box;
+        box-shadow:
+          0 24px 50px -18px rgba(0, 0, 0, 0.45),
+          0 0 0 1px rgba(var(--a-rgb), 0.05),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        opacity: 0;
+        transform: translateX(60px) scale(0.97);
+        transition:
+          transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+          opacity 0.8s ease,
+          box-shadow 0.4s ease;
+      }
+      .flip .jr-card {
+        transform: translateX(-60px) scale(0.97);
+      }
+      html[data-theme="light"] .jr-card {
+        background:
+          radial-gradient(
+              420px circle at var(--mx) var(--my),
+              rgba(var(--a-rgb), 0.14),
+              transparent 60%
+            )
+            padding-box,
+          linear-gradient(
+              160deg,
+              rgba(var(--a-rgb), 0.08),
+              rgba(var(--a-rgb), 0.01) 55%
+            )
+            padding-box,
+          #fff padding-box,
+          linear-gradient(
+              140deg,
+              rgba(var(--a-rgb), 0.95),
+              rgba(var(--a-rgb), 0.22) 38%,
+              rgba(var(--a-rgb), 0.16) 62%,
+              rgba(var(--a-rgb), 0.8)
+            )
+            border-box;
+        box-shadow:
+          0 24px 46px -20px rgba(40, 50, 70, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      }
+      .jr-item.in .jr-card {
+        opacity: 1;
+        transform: none;
+      }
+      .jr-item.in .jr-card:hover {
+        transform: translateY(-8px);
+        box-shadow:
+          0 34px 60px -20px rgba(0, 0, 0, 0.5),
+          0 0 40px -8px rgba(var(--a-rgb), 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+      html[data-theme="light"] .jr-item.in .jr-card:hover {
+        box-shadow:
+          0 34px 56px -22px rgba(40, 50, 70, 0.28),
+          0 0 36px -10px rgba(var(--a-rgb), 0.4);
+      }
+
+      /* ===== Top gold accent bar (draws itself on reveal) ===== */
+      .jr-card::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 4px;
+        width: 100%;
+        background: var(--gc-gold);
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.25s;
+      }
+      .jr-item.in .jr-card::before {
+        transform: scaleX(1);
+      }
+
+      /* ===== Giant ghost number watermark ===== */
+      .jr-card::after {
+        content: attr(data-n);
+        position: absolute;
+        right: 1.4rem;
+        bottom: -1.3rem;
+        font-size: 7.5rem;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--e-accent);
+        opacity: 0.06;
+        pointer-events: none;
+        transition:
+          opacity 0.4s ease,
+          transform 0.6s ease;
+      }
+      .jr-card:hover::after {
+        opacity: 0.14;
+        transform: translateY(-6px);
+      }
+
+      /* ===== Diagonal shine sweep ===== */
+      .jr-shine {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          115deg,
+          transparent 35%,
+          rgba(255, 255, 255, 0.1) 50%,
+          transparent 65%
+        );
+        transform: translateX(-120%);
+        transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .jr-card:hover .jr-shine {
+        transform: translateX(120%);
+      }
+
+      /* ===== Card header row (chip + year) ===== */
+      .jr-top {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.4rem;
+      }
+
+      /* ===== Tag chip ===== */
+      .jr-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.85rem 0.4rem 0.45rem;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--e-accent);
+        background: rgba(var(--a-rgb), 0.1);
+        border: 1px solid var(--gold-line);
+      }
+      .jr-chip i {
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--gc-gold);
+        color: #1a1405;
+      }
+      .jr-chip svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      /* ===== Year ===== */
+      .jr-year {
+        font-size: 1.15rem;
+      }
+
+      /* ===== Card content raised above decoration ===== */
+      .jr-card h3,
+      .jr-card p {
+        position: relative;
+        z-index: 1;
+      }
+      .jr-card h3 {
+        margin-top: 0;
+        font-size: 1.6rem;
+      }
+
+      /* ===== Organization line with gold dash rule ===== */
+      .jr-org {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.6rem;
+        font-size: 0.95rem;
+        letter-spacing: 0.02em;
+      }
+      .jr-org::before {
+        content: "";
+        width: 18px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--e-accent);
+      }
+
+      /* ===== Card paragraph ===== */
+      .jr-card p {
+        margin-top: 1.1rem;
+        line-height: 1.7;
+      }
+
+      /* ===== Mobile tuning ===== */
+      @media (max-width: 767px) {
+        .jr-card,
+        .flip .jr-card {
+          padding: 1.7rem 1.5rem;
+          border-radius: 22px;
+          transform: translateY(30px);
+        }
+        .jr-item.in .jr-card {
+          transform: none;
+        }
+        .jr-card h3 {
+          font-size: 1.3rem;
+        }
+      }
+
+      /* ===== Reduced motion ===== */
+      @media (prefers-reduced-motion: reduce) {
+        .jr-card {
+          opacity: 1 !important;
+          transform: none !important;
+        }
+        .jr-card::before {
+          transform: scaleX(1) !important;
+        }
+        .jr-shine {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -3693,18 +3954,21 @@
       const journeyData = [
         {
           year: "2026",
+          tag: "Experience",
           title: "MERN Stack Developer Intern",
           org: "Tech Company",
           text: "Built full-stack web applications, developed RESTful APIs, and implemented JWT-based authentication.",
         },
         {
           year: "2023 - 2026",
+          tag: "Education",
           title: "BCA",
           org: "University of Madras",
           text: "Pursuing Bachelor of Computer Applications. CGPA: 68%.",
         },
         {
           year: "2021 - 2023",
+          tag: "Education",
           title: "Higher Secondary",
           org: "K.E.N.C HR Government School",
           text: "Completed 11th and 12th grade with 62%.",
@@ -3999,8 +4263,16 @@
           li.innerHTML = `
             <div class="bike-image-container"></div>
             <span class="jr-dot"></span>
-            <div class="jr-card">
-              <span class="jr-year">${item.year}</span>
+            <div class="jr-card" data-n="0${i + 1}">
+              <span class="jr-shine" aria-hidden="true"></span>
+              <div class="jr-top">
+                <span class="jr-chip"><i>${
+                  item.tag === "Experience"
+                    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+                    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg>'
+                }</i>${item.tag || ""}</span>
+                <span class="jr-year">${item.year}</span>
+              </div>
               <h3>${item.title}</h3>
               <span class="jr-org">${item.org}</span>
               <p>${item.text}</p>
@@ -4088,6 +4360,34 @@
           }
           place(progress);
         };
+
+        // Cursor spotlight on each card
+        list.addEventListener("pointermove", (e) => {
+          const card = e.target.closest && e.target.closest(".jr-card");
+          if (!card) return;
+          const r = card.getBoundingClientRect();
+          card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+          card.style.setProperty("--my", `${e.clientY - r.top}px`);
+        });
+
+        // Reveal observer: add .in so entrance + top bar animate
+        if ("IntersectionObserver" in window) {
+          const io = new IntersectionObserver(
+            (es) =>
+              es.forEach((e) => {
+                if (e.isIntersecting) {
+                  e.target.classList.add("in");
+                  io.unobserve(e.target);
+                }
+              }),
+            { threshold: 0.25 },
+          );
+          list.querySelectorAll(".jr-item").forEach((el) => io.observe(el));
+        } else {
+          list
+            .querySelectorAll(".jr-item")
+            .forEach((el) => el.classList.add("in"));
+        }
 
         setTimeout(build, 100);
 
