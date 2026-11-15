@@ -1,1186 +1,770 @@
-/* ==========================================================================
-   GLOW CURSOR — vanilla JS port (no React / build step needed)
-   WebGL2 fluid-sim light trail that follows the pointer across the whole page.
-   - Follows the site theme (html[data-theme="dark" | "light"])
-   - Desktop / fine-pointer only; skipped on touch devices
-   - Respects prefers-reduced-motion
-   - Fails silently if WebGL2 / float render targets are unavailable
-   Tweak the look from the console or your own code:
-     GlowCursor.update({ intensity: 1.6, linger: 2 })
-   ========================================================================== */
-(function () {
+!(function () {
   "use strict";
-  if (window.GlowCursor) return;
-
-  /* ---------------------------------------------------------------- config */
-  var SETTINGS = {
-    intensity: 1.3,
-    trailWidth: 3,
-    linger: 1.4,
-    glow: 1.2,
-    hotspot: 0.8,
-    followSpeed: 0.6,
-    grain: 0,
-    clickBurst: true,
-    quality: "medium", // "low" | "medium" | "high"
-    maxDevicePixelRatio: 1,
-    enabled: true,
-    zIndex: 9998,
-  };
-
-  // Colours per site theme (same gold in both themes)
-  var THEMES = {
-    dark: {
-      color: "#e6b93c",
-      secondaryColor: "",
-      theme: "dark",
-      blend: "screen",
-    },
-    light: {
-      color: "#e6b93c",
-      secondaryColor: "",
-      theme: "light",
-      blend: "normal",
-    },
-  };
-
-  /* --------------------------------------------------------------- shaders */
-  var VERTEX = `#version 300 es
-in vec2 aPosition;
-uniform vec2 uTexel;
-out vec2 vUv;
-out vec2 vL;
-out vec2 vR;
-out vec2 vT;
-out vec2 vB;
-void main() {
-  vUv = aPosition * 0.5 + 0.5;
-  vL = vUv - vec2(uTexel.x, 0.0);
-  vR = vUv + vec2(uTexel.x, 0.0);
-  vT = vUv + vec2(0.0, uTexel.y);
-  vB = vUv - vec2(0.0, uTexel.y);
-  gl_Position = vec4(aPosition, 0.0, 1.0);
-}`;
-
-  var HEADER = `#version 300 es
-precision highp float;
-precision highp sampler2D;
-in vec2 vUv;
-in vec2 vL;
-in vec2 vR;
-in vec2 vT;
-in vec2 vB;
-out vec4 outColor;
-`;
-
-  var SPLAT = `${HEADER}
-uniform sampler2D uTarget;
-uniform float uAspect;
-uniform vec2 uA;
-uniform vec2 uB;
-uniform float uRadius;
-uniform float uWide;
-uniform vec3 uValue;
-uniform float uMode;
-uniform float uStrength;
-float erf(float x) {
-  float x2 = x * x;
-  float a = 0.147;
-  return sign(x) * sqrt(1.0 - exp(-x2 * (1.2732395 + a * x2) / (1.0 + a * x2)));
-}
-float sweep(float along, float length, float across, float radius) {
-  return exp(-across * across / (radius * radius)) * 0.5 * (erf(along / radius) - erf((along - length) / radius));
-}
-void main() {
-  vec2 p = vec2(vUv.x * uAspect, vUv.y);
-  vec2 a = vec2(uA.x * uAspect, uA.y);
-  vec2 ab = vec2(uB.x * uAspect, uB.y) - a;
-  float len = length(ab);
-  vec2 dir = len > 1e-6 ? ab / len : vec2(1.0, 0.0);
-  vec2 ap = p - a;
-  vec3 base = texture(uTarget, vUv).xyz;
-  if (uMode > 1.5) {
-    float along = dot(ap, dir);
-    float across = dot(ap, vec2(-dir.y, dir.x));
-    if (uMode > 2.5) {
-      outColor = vec4(mix(base, uValue, sweep(along, len, across, uRadius) * uStrength), 1.0);
-      return;
-    }
-    vec3 add = vec3(uValue.xy * sweep(along, len, across, uRadius), uValue.z * sweep(along, len, across, uWide));
-    outColor = vec4(base + add, 1.0);
-    return;
+  if (!window.GlowCursor) {
+    var e = {
+        intensity: 1.3,
+        trailWidth: 3,
+        linger: 1.4,
+        glow: 1.2,
+        hotspot: 0.8,
+        followSpeed: 0.6,
+        grain: 0,
+        clickBurst: !0,
+        quality: "medium",
+        maxDevicePixelRatio: 1,
+        enabled: !0,
+        zIndex: 9998,
+      },
+      t = {
+        dark: {
+          color: "#e6b93c",
+          secondaryColor: "",
+          theme: "dark",
+          blend: "screen",
+        },
+        light: {
+          color: "#e6b93c",
+          secondaryColor: "",
+          theme: "light",
+          blend: "normal",
+        },
+      },
+      r =
+        "#version 300 es\nprecision highp float;\nprecision highp sampler2D;\nin vec2 vUv;\nin vec2 vL;\nin vec2 vR;\nin vec2 vT;\nin vec2 vB;\nout vec4 outColor;\n",
+      o = `${r}\nuniform sampler2D uTarget;\nuniform float uAspect;\nuniform vec2 uA;\nuniform vec2 uB;\nuniform float uRadius;\nuniform float uWide;\nuniform vec3 uValue;\nuniform float uMode;\nuniform float uStrength;\nfloat erf(float x) {\n  float x2 = x * x;\n  float a = 0.147;\n  return sign(x) * sqrt(1.0 - exp(-x2 * (1.2732395 + a * x2) / (1.0 + a * x2)));\n}\nfloat sweep(float along, float length, float across, float radius) {\n  return exp(-across * across / (radius * radius)) * 0.5 * (erf(along / radius) - erf((along - length) / radius));\n}\nvoid main() {\n  vec2 p = vec2(vUv.x * uAspect, vUv.y);\n  vec2 a = vec2(uA.x * uAspect, uA.y);\n  vec2 ab = vec2(uB.x * uAspect, uB.y) - a;\n  float len = length(ab);\n  vec2 dir = len > 1e-6 ? ab / len : vec2(1.0, 0.0);\n  vec2 ap = p - a;\n  vec3 base = texture(uTarget, vUv).xyz;\n  if (uMode > 1.5) {\n    float along = dot(ap, dir);\n    float across = dot(ap, vec2(-dir.y, dir.x));\n    if (uMode > 2.5) {\n      outColor = vec4(mix(base, uValue, sweep(along, len, across, uRadius) * uStrength), 1.0);\n      return;\n    }\n    vec3 add = vec3(uValue.xy * sweep(along, len, across, uRadius), uValue.z * sweep(along, len, across, uWide));\n    outColor = vec4(base + add, 1.0);\n    return;\n  }\n  float h = clamp(dot(ap, ab) / max(dot(ab, ab), 1e-9), 0.0, 1.0);\n  vec2 d = ap - ab * h;\n  float r2 = dot(d, d);\n  float falloff = exp(-r2 / (uRadius * uRadius));\n  float wide = exp(-r2 / (uWide * uWide));\n  vec3 result = uMode > 0.5 ? mix(base, uValue, falloff * uStrength) : base + vec3(uValue.xy * falloff, uValue.z * wide);\n  outColor = vec4(result, 1.0);\n}`,
+      n = `${r}\nuniform sampler2D uVelocity;\nuniform sampler2D uSource;\nuniform vec2 uVelocityTexel;\nuniform float uDt;\nuniform vec4 uDecay;\nvoid main() {\n  vec2 coord = vUv - uDt * texture(uVelocity, vUv).xy * uVelocityTexel;\n  outColor = texture(uSource, coord) * uDecay;\n}`,
+      i = `${r}\nuniform sampler2D uVelocity;\nuniform sampler2D uSource;\nuniform sampler2D uForward;\nuniform sampler2D uBack;\nuniform vec2 uVelocityTexel;\nuniform vec2 uSourceTexel;\nuniform float uDt;\nuniform vec4 uDecay;\nvoid main() {\n  vec2 coord = vUv - uDt * texture(uVelocity, vUv).xy * uVelocityTexel;\n  vec4 forward = texture(uForward, vUv);\n  vec4 corrected = forward + 0.5 * (texture(uSource, vUv) - texture(uBack, vUv));\n  vec2 base = (floor(coord / uSourceTexel - 0.5) + 0.5) * uSourceTexel;\n  vec4 a = texture(uSource, base);\n  vec4 b = texture(uSource, base + vec2(uSourceTexel.x, 0.0));\n  vec4 c = texture(uSource, base + vec2(0.0, uSourceTexel.y));\n  vec4 d = texture(uSource, base + uSourceTexel);\n  vec4 low = min(min(a, b), min(c, d));\n  vec4 high = max(max(a, b), max(c, d));\n  outColor = clamp(corrected, low, high) * uDecay;\n}`,
+      a = `${r}\nuniform sampler2D uVelocity;\nvoid main() {\n  float left = texture(uVelocity, vL).x;\n  float right = texture(uVelocity, vR).x;\n  float top = texture(uVelocity, vT).y;\n  float bottom = texture(uVelocity, vB).y;\n  vec2 center = texture(uVelocity, vUv).xy;\n  if (vL.x < 0.0) left = -center.x;\n  if (vR.x > 1.0) right = -center.x;\n  if (vT.y > 1.0) top = -center.y;\n  if (vB.y < 0.0) bottom = -center.y;\n  outColor = vec4(0.5 * (right - left + top - bottom), 0.0, 0.0, 1.0);\n}`,
+      u = `${r}\nuniform sampler2D uSource;\nuniform float uValue;\nvoid main() {\n  outColor = texture(uSource, vUv) * uValue;\n}`,
+      l = `${r}\nuniform sampler2D uPressure;\nuniform sampler2D uDivergence;\nvoid main() {\n  float left = texture(uPressure, vL).x;\n  float right = texture(uPressure, vR).x;\n  float top = texture(uPressure, vT).x;\n  float bottom = texture(uPressure, vB).x;\n  float divergence = texture(uDivergence, vUv).x;\n  outColor = vec4((left + right + bottom + top - divergence) * 0.25, 0.0, 0.0, 1.0);\n}`,
+      c = `${r}\nuniform sampler2D uPressure;\nuniform sampler2D uVelocity;\nvoid main() {\n  float left = texture(uPressure, vL).x;\n  float right = texture(uPressure, vR).x;\n  float top = texture(uPressure, vT).x;\n  float bottom = texture(uPressure, vB).x;\n  vec2 velocity = texture(uVelocity, vUv).xy - vec2(right - left, top - bottom);\n  outColor = vec4(velocity, 0.0, 1.0);\n}`,
+      v =
+        "\nuniform vec3 uColor;\nuniform vec3 uSecondary;\nuniform float uIntensity;\nuniform float uHotspot;\nvec3 shade(vec3 dye) {\n  float energy = max(dye.x, 0.0);\n  float heat = clamp(dye.y, 0.0, energy);\n  float gas = max(dye.z, 0.0);\n  float fresh = heat / max(energy, 0.0001);\n  vec3 tint = mix(uSecondary, uColor, fresh);\n  return (tint * energy + uSecondary * gas + vec3(heat * heat * 0.3 * uHotspot)) * uIntensity;\n}\n",
+      d = `${r}${v}\nuniform sampler2D uDye;\nuniform vec2 uDyeTexel;\nvoid main() {\n  vec2 o = uDyeTexel * 0.5;\n  vec3 light = shade(texture(uDye, vUv + vec2(-o.x, -o.y)).xyz);\n  light += shade(texture(uDye, vUv + vec2(o.x, -o.y)).xyz);\n  light += shade(texture(uDye, vUv + vec2(-o.x, o.y)).xyz);\n  light += shade(texture(uDye, vUv + vec2(o.x, o.y)).xyz);\n  outColor = vec4(light * 0.25, 1.0);\n}`,
+      f = `${r}\nuniform sampler2D uSource;\nuniform vec2 uSourceTexel;\nvoid main() {\n  vec2 o = uSourceTexel;\n  vec3 color = texture(uSource, vUv).rgb * 4.0;\n  color += texture(uSource, vUv + vec2(-o.x, -o.y)).rgb;\n  color += texture(uSource, vUv + vec2(o.x, -o.y)).rgb;\n  color += texture(uSource, vUv + vec2(-o.x, o.y)).rgb;\n  color += texture(uSource, vUv + vec2(o.x, o.y)).rgb;\n  outColor = vec4(color / 8.0, 1.0);\n}`,
+      m = `${r}\nuniform sampler2D uSource;\nuniform vec2 uSourceTexel;\nvoid main() {\n  vec2 o = uSourceTexel;\n  vec3 color = texture(uSource, vUv + vec2(-o.x * 2.0, 0.0)).rgb;\n  color += texture(uSource, vUv + vec2(o.x * 2.0, 0.0)).rgb;\n  color += texture(uSource, vUv + vec2(0.0, -o.y * 2.0)).rgb;\n  color += texture(uSource, vUv + vec2(0.0, o.y * 2.0)).rgb;\n  color += texture(uSource, vUv + vec2(-o.x, -o.y)).rgb * 2.0;\n  color += texture(uSource, vUv + vec2(o.x, -o.y)).rgb * 2.0;\n  color += texture(uSource, vUv + vec2(-o.x, o.y)).rgb * 2.0;\n  color += texture(uSource, vUv + vec2(o.x, o.y)).rgb * 2.0;\n  outColor = vec4(color / 12.0, 1.0);\n}`,
+      s = `${r}${v}\nuniform sampler2D uDye;\nuniform sampler2D uBloom;\nuniform float uGlow;\nuniform float uGrain;\nuniform float uTime;\nuniform float uLight;\nfloat hash(vec2 p) {\n  p = fract(p * vec2(123.34, 456.21));\n  p += dot(p, p + 45.32);\n  return fract(p.x * p.y);\n}\nvoid main() {\n  vec3 dye = texture(uDye, vUv).xyz;\n  vec3 light = shade(dye);\n  vec3 bloom = texture(uBloom, vUv).rgb * uGlow;\n  float edge = smoothstep(0.0, 0.02, min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y)));\n  float grain = 1.0 + (hash(gl_FragCoord.xy + fract(uTime * 13.7) * 97.0) - 0.5) * uGrain * 2.0;\n  if (uLight > 0.5) {\n    float energy = max(dye.x, 0.0);\n    float heat = clamp(dye.y, 0.0, energy);\n    float gas = max(dye.z, 0.0);\n    float fresh = heat / max(energy, 0.0001);\n    vec3 tint = mix(uSecondary, uColor, fresh);\n    float halo = dot(bloom, vec3(0.2126, 0.7152, 0.0722));\n    float density = 1.0 - exp(-((energy * 1.1 + gas * 0.8) * uIntensity + halo * 0.25));\n    vec3 ink = tint;\n    ink = mix(ink, vec3(1.0), clamp(heat * heat * 0.05 * uHotspot, 0.0, 0.45));\n    density = clamp(density * grain, 0.0, 1.0) * edge;\n    outColor = vec4(ink * density, density);\n  } else {\n    vec3 color = 1.0 - exp(-(light + bloom) * grain);\n    color *= edge;\n    outColor = vec4(color, max(color.r, max(color.g, color.b)));\n  }\n}`,
+      x = {
+        low: { sim: 96, dye: 384 },
+        medium: { sim: 128, dye: 576 },
+        high: { sim: 160, dye: 768 },
+      };
+    "loading" === document.readyState
+      ? document.addEventListener("DOMContentLoaded", g)
+      : g();
   }
-  float h = clamp(dot(ap, ab) / max(dot(ab, ab), 1e-9), 0.0, 1.0);
-  vec2 d = ap - ab * h;
-  float r2 = dot(d, d);
-  float falloff = exp(-r2 / (uRadius * uRadius));
-  float wide = exp(-r2 / (uWide * uWide));
-  vec3 result = uMode > 0.5 ? mix(base, uValue, falloff * uStrength) : base + vec3(uValue.xy * falloff, uValue.z * wide);
-  outColor = vec4(result, 1.0);
-}`;
-
-  var ADVECT = `${HEADER}
-uniform sampler2D uVelocity;
-uniform sampler2D uSource;
-uniform vec2 uVelocityTexel;
-uniform float uDt;
-uniform vec4 uDecay;
-void main() {
-  vec2 coord = vUv - uDt * texture(uVelocity, vUv).xy * uVelocityTexel;
-  outColor = texture(uSource, coord) * uDecay;
-}`;
-
-  var MACCORMACK = `${HEADER}
-uniform sampler2D uVelocity;
-uniform sampler2D uSource;
-uniform sampler2D uForward;
-uniform sampler2D uBack;
-uniform vec2 uVelocityTexel;
-uniform vec2 uSourceTexel;
-uniform float uDt;
-uniform vec4 uDecay;
-void main() {
-  vec2 coord = vUv - uDt * texture(uVelocity, vUv).xy * uVelocityTexel;
-  vec4 forward = texture(uForward, vUv);
-  vec4 corrected = forward + 0.5 * (texture(uSource, vUv) - texture(uBack, vUv));
-  vec2 base = (floor(coord / uSourceTexel - 0.5) + 0.5) * uSourceTexel;
-  vec4 a = texture(uSource, base);
-  vec4 b = texture(uSource, base + vec2(uSourceTexel.x, 0.0));
-  vec4 c = texture(uSource, base + vec2(0.0, uSourceTexel.y));
-  vec4 d = texture(uSource, base + uSourceTexel);
-  vec4 low = min(min(a, b), min(c, d));
-  vec4 high = max(max(a, b), max(c, d));
-  outColor = clamp(corrected, low, high) * uDecay;
-}`;
-
-  var DIVERGENCE = `${HEADER}
-uniform sampler2D uVelocity;
-void main() {
-  float left = texture(uVelocity, vL).x;
-  float right = texture(uVelocity, vR).x;
-  float top = texture(uVelocity, vT).y;
-  float bottom = texture(uVelocity, vB).y;
-  vec2 center = texture(uVelocity, vUv).xy;
-  if (vL.x < 0.0) left = -center.x;
-  if (vR.x > 1.0) right = -center.x;
-  if (vT.y > 1.0) top = -center.y;
-  if (vB.y < 0.0) bottom = -center.y;
-  outColor = vec4(0.5 * (right - left + top - bottom), 0.0, 0.0, 1.0);
-}`;
-
-  var SCALE = `${HEADER}
-uniform sampler2D uSource;
-uniform float uValue;
-void main() {
-  outColor = texture(uSource, vUv) * uValue;
-}`;
-
-  var PRESSURE = `${HEADER}
-uniform sampler2D uPressure;
-uniform sampler2D uDivergence;
-void main() {
-  float left = texture(uPressure, vL).x;
-  float right = texture(uPressure, vR).x;
-  float top = texture(uPressure, vT).x;
-  float bottom = texture(uPressure, vB).x;
-  float divergence = texture(uDivergence, vUv).x;
-  outColor = vec4((left + right + bottom + top - divergence) * 0.25, 0.0, 0.0, 1.0);
-}`;
-
-  var GRADIENT = `${HEADER}
-uniform sampler2D uPressure;
-uniform sampler2D uVelocity;
-void main() {
-  float left = texture(uPressure, vL).x;
-  float right = texture(uPressure, vR).x;
-  float top = texture(uPressure, vT).x;
-  float bottom = texture(uPressure, vB).x;
-  vec2 velocity = texture(uVelocity, vUv).xy - vec2(right - left, top - bottom);
-  outColor = vec4(velocity, 0.0, 1.0);
-}`;
-
-  var SHADE = `
-uniform vec3 uColor;
-uniform vec3 uSecondary;
-uniform float uIntensity;
-uniform float uHotspot;
-vec3 shade(vec3 dye) {
-  float energy = max(dye.x, 0.0);
-  float heat = clamp(dye.y, 0.0, energy);
-  float gas = max(dye.z, 0.0);
-  float fresh = heat / max(energy, 0.0001);
-  vec3 tint = mix(uSecondary, uColor, fresh);
-  return (tint * energy + uSecondary * gas + vec3(heat * heat * 0.3 * uHotspot)) * uIntensity;
-}
-`;
-
-  var PREFILTER = `${HEADER}${SHADE}
-uniform sampler2D uDye;
-uniform vec2 uDyeTexel;
-void main() {
-  vec2 o = uDyeTexel * 0.5;
-  vec3 light = shade(texture(uDye, vUv + vec2(-o.x, -o.y)).xyz);
-  light += shade(texture(uDye, vUv + vec2(o.x, -o.y)).xyz);
-  light += shade(texture(uDye, vUv + vec2(-o.x, o.y)).xyz);
-  light += shade(texture(uDye, vUv + vec2(o.x, o.y)).xyz);
-  outColor = vec4(light * 0.25, 1.0);
-}`;
-
-  var DOWN = `${HEADER}
-uniform sampler2D uSource;
-uniform vec2 uSourceTexel;
-void main() {
-  vec2 o = uSourceTexel;
-  vec3 color = texture(uSource, vUv).rgb * 4.0;
-  color += texture(uSource, vUv + vec2(-o.x, -o.y)).rgb;
-  color += texture(uSource, vUv + vec2(o.x, -o.y)).rgb;
-  color += texture(uSource, vUv + vec2(-o.x, o.y)).rgb;
-  color += texture(uSource, vUv + vec2(o.x, o.y)).rgb;
-  outColor = vec4(color / 8.0, 1.0);
-}`;
-
-  var UP = `${HEADER}
-uniform sampler2D uSource;
-uniform vec2 uSourceTexel;
-void main() {
-  vec2 o = uSourceTexel;
-  vec3 color = texture(uSource, vUv + vec2(-o.x * 2.0, 0.0)).rgb;
-  color += texture(uSource, vUv + vec2(o.x * 2.0, 0.0)).rgb;
-  color += texture(uSource, vUv + vec2(0.0, -o.y * 2.0)).rgb;
-  color += texture(uSource, vUv + vec2(0.0, o.y * 2.0)).rgb;
-  color += texture(uSource, vUv + vec2(-o.x, -o.y)).rgb * 2.0;
-  color += texture(uSource, vUv + vec2(o.x, -o.y)).rgb * 2.0;
-  color += texture(uSource, vUv + vec2(-o.x, o.y)).rgb * 2.0;
-  color += texture(uSource, vUv + vec2(o.x, o.y)).rgb * 2.0;
-  outColor = vec4(color / 12.0, 1.0);
-}`;
-
-  var DISPLAY = `${HEADER}${SHADE}
-uniform sampler2D uDye;
-uniform sampler2D uBloom;
-uniform float uGlow;
-uniform float uGrain;
-uniform float uTime;
-uniform float uLight;
-float hash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
-}
-void main() {
-  vec3 dye = texture(uDye, vUv).xyz;
-  vec3 light = shade(dye);
-  vec3 bloom = texture(uBloom, vUv).rgb * uGlow;
-  float edge = smoothstep(0.0, 0.02, min(min(vUv.x, 1.0 - vUv.x), min(vUv.y, 1.0 - vUv.y)));
-  float grain = 1.0 + (hash(gl_FragCoord.xy + fract(uTime * 13.7) * 97.0) - 0.5) * uGrain * 2.0;
-  if (uLight > 0.5) {
-    float energy = max(dye.x, 0.0);
-    float heat = clamp(dye.y, 0.0, energy);
-    float gas = max(dye.z, 0.0);
-    float fresh = heat / max(energy, 0.0001);
-    vec3 tint = mix(uSecondary, uColor, fresh);
-    float halo = dot(bloom, vec3(0.2126, 0.7152, 0.0722));
-    float density = 1.0 - exp(-((energy * 1.1 + gas * 0.8) * uIntensity + halo * 0.25));
-    vec3 ink = tint;
-    ink = mix(ink, vec3(1.0), clamp(heat * heat * 0.05 * uHotspot, 0.0, 0.45));
-    density = clamp(density * grain, 0.0, 1.0) * edge;
-    outColor = vec4(ink * density, density);
-  } else {
-    vec3 color = 1.0 - exp(-(light + bloom) * grain);
-    color *= edge;
-    outColor = vec4(color, max(color.r, max(color.g, color.b)));
+  function h(e, t, r) {
+    return Math.min(r, Math.max(t, e));
   }
-}`;
-
-  var QUALITY = {
-    low: { sim: 96, dye: 384 },
-    medium: { sim: 128, dye: 576 },
-    high: { sim: 160, dye: 768 },
-  };
-  var PRESSURE_STEPS = 20;
-  var FLOW = 0.75;
-  var BLOOM_LEVELS = 5;
-
-  /* --------------------------------------------------------------- helpers */
-  function clamp(v, min, max) {
-    return Math.min(max, Math.max(min, v));
+  function y(e, t, r) {
+    var o = e.createShader(t);
+    return o
+      ? (e.shaderSource(o, r),
+        e.compileShader(o),
+        e.getShaderParameter(o, e.COMPILE_STATUS)
+          ? o
+          : (e.deleteShader(o), null))
+      : null;
   }
-
-  function compile(gl, type, source) {
-    var shader = gl.createShader(type);
-    if (!shader) return null;
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
-    gl.deleteShader(shader);
-    return null;
-  }
-
-  function toHsv(c) {
-    var r = c[0],
-      g = c[1],
-      b = c[2];
-    var max = Math.max(r, g, b),
-      min = Math.min(r, g, b),
-      delta = max - min;
-    var hue = 0;
-    if (delta > 0) {
-      if (max === r) hue = ((g - b) / delta) % 6;
-      else if (max === g) hue = (b - r) / delta + 2;
-      else hue = (r - g) / delta + 4;
-    }
-    return [(hue * 60 + 360) % 360, max > 0 ? delta / max : 0, max];
-  }
-
-  function fromHsv(hue, saturation, value) {
-    var h = (((hue % 360) + 360) % 360) / 60;
-    var c = value * saturation;
-    var x = c * (1 - Math.abs((h % 2) - 1));
-    var m = value - c;
-    var rgb =
-      h < 1
-        ? [c, x, 0]
-        : h < 2
-          ? [x, c, 0]
-          : h < 3
-            ? [0, c, x]
-            : h < 4
-              ? [0, x, c]
-              : h < 5
-                ? [x, 0, c]
-                : [c, 0, x];
-    return [rgb[0] + m, rgb[1] + m, rgb[2] + m];
-  }
-
-  /* ------------------------------------------------------------------ init */
-  function init() {
-    // Desktop / mouse only — skip touch devices to save battery
-    var fine =
+  function g() {
+    if (
       window.matchMedia &&
-      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    if (!fine) return;
-
-    var container = document.createElement("div");
-    container.className = "glow-cursor";
-    container.setAttribute("aria-hidden", "true");
-    container.style.cssText =
-      "position:fixed;inset:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:" +
-      SETTINGS.zIndex +
-      ";";
-    var canvas = document.createElement("canvas");
-    canvas.className = "glow-cursor__canvas";
-    canvas.style.cssText =
-      "position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;user-select:none;";
-    container.appendChild(canvas);
-
-    var gl = canvas.getContext("webgl2", {
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: false,
-      depth: false,
-      stencil: false,
-    });
-    if (!gl || !gl.getExtension("EXT_color_buffer_float")) return;
-
-    var vertexShader = compile(gl, gl.VERTEX_SHADER, VERTEX);
-    if (!vertexShader) return;
-
-    function build(source) {
-      var fragment = compile(gl, gl.FRAGMENT_SHADER, source);
-      var program = gl.createProgram();
-      if (!fragment || !program) return null;
-      gl.attachShader(program, vertexShader);
-      gl.attachShader(program, fragment);
-      gl.bindAttribLocation(program, 0, "aPosition");
-      gl.linkProgram(program);
-      gl.deleteShader(fragment);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        gl.deleteProgram(program);
-        return null;
-      }
-      var uniforms = {};
-      var count = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
-      for (var i = 0; i < count; i++) {
-        var info = gl.getActiveUniform(program, i);
-        if (info)
-          uniforms[info.name] = gl.getUniformLocation(program, info.name);
-      }
-      return { program: program, uniforms: uniforms };
-    }
-
-    var passes = {
-      splat: build(SPLAT),
-      advect: build(ADVECT),
-      maccormack: build(MACCORMACK),
-      divergence: build(DIVERGENCE),
-      scale: build(SCALE),
-      pressure: build(PRESSURE),
-      gradient: build(GRADIENT),
-      prefilter: build(PREFILTER),
-      down: build(DOWN),
-      up: build(UP),
-      display: build(DISPLAY),
-    };
-    for (var key in passes) if (!passes[key]) return;
-
-    document.body.appendChild(container);
-
-    var vao = gl.createVertexArray();
-    var buffer = gl.createBuffer();
-    gl.bindVertexArray(vao);
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 3, -1, -1, 3]),
-      gl.STATIC_DRAW,
-    );
-    gl.enableVertexAttribArray(0);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-
-    var probe = document.createElement("canvas");
-    probe.width = 1;
-    probe.height = 1;
-    var probeContext = probe.getContext("2d", { willReadFrequently: true });
-    var reduce = window.matchMedia
-      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      : false;
-
-    /* ---- live settings (site settings + current theme) ---- */
-    var S = {};
-    function syncSettings() {
-      var themeName =
-        document.documentElement.getAttribute("data-theme") === "light"
-          ? "light"
-          : "dark";
-      var t = THEMES[themeName];
-      S = {
-        color: t.color,
-        secondaryColor: t.secondaryColor,
-        theme: t.theme,
-        intensity: Math.max(0, SETTINGS.intensity),
-        trailWidth: clamp(SETTINGS.trailWidth, 0.5, 40),
-        linger: clamp(SETTINGS.linger, 0.1, 10),
-        glow: Math.max(0, SETTINGS.glow),
-        hotspot: Math.max(0, SETTINGS.hotspot),
-        followSpeed: clamp(SETTINGS.followSpeed, 0, 1),
-        grain: Math.max(0, SETTINGS.grain),
-        clickBurst: SETTINGS.clickBurst,
-        quality: QUALITY[SETTINGS.quality] ? SETTINGS.quality : "high",
-        maxDevicePixelRatio: SETTINGS.maxDevicePixelRatio,
-        enabled: SETTINGS.enabled,
-      };
-      canvas.style.mixBlendMode = t.blend;
-    }
-    syncSettings();
-
-    var state = {
-      width: 1,
-      height: 1,
-      ratio: 1,
-      colorKey: "",
-      color: [0.37, 0.55, 1],
-      secondary: [0.25, 0.3, 1],
-      pointer: { x: 0, y: 0, inside: false },
-      emitter: { x: 0, y: 0, vx: 0, vy: 0, px: 0, py: 0, travelled: 0 },
-      ready: false,
-      bursts: [],
-      active: -Infinity,
-      time: 0,
-      allocated: "",
-      targets: null,
-    };
-    var raf = 0;
-    var last = 0;
-    var alive = true;
-    var visible = true;
-
-    function toRgb(value, fallback) {
-      if (!probeContext || !value) return fallback;
-      var css = /^[0-9a-f]{3,8}$/i.test(value) ? "#" + value : value;
-      probeContext.clearRect(0, 0, 1, 1);
-      probeContext.fillStyle = "#000000";
-      probeContext.fillStyle = css;
-      probeContext.fillRect(0, 0, 1, 1);
-      var d = probeContext.getImageData(0, 0, 1, 1).data;
-      return [d[0] / 255, d[1] / 255, d[2] / 255];
-    }
-
-    function resolveColors() {
-      var k = S.color + "|" + S.secondaryColor;
-      if (k === state.colorKey) return;
-      state.colorKey = k;
-      state.color = toRgb(S.color, [0.37, 0.55, 1]);
-      if (S.secondaryColor) {
-        state.secondary = toRgb(S.secondaryColor, state.color);
-      } else {
-        var hsv = toHsv(state.color);
-        state.secondary = fromHsv(
-          hsv[0] + 8,
-          Math.min(1, hsv[1] * 1.1 + 0.05),
-          hsv[2],
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches
+    ) {
+      var r = document.createElement("div");
+      ((r.className = "glow-cursor"),
+        r.setAttribute("aria-hidden", "true"),
+        (r.style.cssText =
+          "position:fixed;inset:0;width:100%;height:100%;overflow:hidden;pointer-events:none;z-index:" +
+          e.zIndex +
+          ";"));
+      var v = document.createElement("canvas");
+      ((v.className = "glow-cursor__canvas"),
+        (v.style.cssText =
+          "position:absolute;inset:0;display:block;width:100%;height:100%;pointer-events:none;user-select:none;"),
+        r.appendChild(v));
+      var g = v.getContext("webgl2", {
+        alpha: !0,
+        premultipliedAlpha: !0,
+        antialias: !1,
+        depth: !1,
+        stencil: !1,
+      });
+      if (g && g.getExtension("EXT_color_buffer_float")) {
+        var p = y(
+          g,
+          g.VERTEX_SHADER,
+          "#version 300 es\nin vec2 aPosition;\nuniform vec2 uTexel;\nout vec2 vUv;\nout vec2 vL;\nout vec2 vR;\nout vec2 vT;\nout vec2 vB;\nvoid main() {\n  vUv = aPosition * 0.5 + 0.5;\n  vL = vUv - vec2(uTexel.x, 0.0);\n  vR = vUv + vec2(uTexel.x, 0.0);\n  vT = vUv + vec2(0.0, uTexel.y);\n  vB = vUv - vec2(0.0, uTexel.y);\n  gl_Position = vec4(aPosition, 0.0, 1.0);\n}",
         );
+        if (p) {
+          var w = {
+            splat: _(o),
+            advect: _(n),
+            maccormack: _(i),
+            divergence: _(a),
+            scale: _(u),
+            pressure: _(l),
+            gradient: _(c),
+            prefilter: _(d),
+            down: _(f),
+            up: _(m),
+            display: _(s),
+          };
+          for (var b in w) if (!w[b]) return;
+          document.body.appendChild(r);
+          var T = g.createVertexArray(),
+            R = g.createBuffer();
+          (g.bindVertexArray(T),
+            g.bindBuffer(g.ARRAY_BUFFER, R),
+            g.bufferData(
+              g.ARRAY_BUFFER,
+              new Float32Array([-1, -1, 3, -1, -1, 3]),
+              g.STATIC_DRAW,
+            ),
+            g.enableVertexAttribArray(0),
+            g.vertexAttribPointer(0, 2, g.FLOAT, !1, 0, 0));
+          var E = document.createElement("canvas");
+          ((E.width = 1), (E.height = 1));
+          var S = E.getContext("2d", { willReadFrequently: !0 }),
+            D =
+              !!window.matchMedia &&
+              window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            M = {};
+          I();
+          var U = {
+              width: 1,
+              height: 1,
+              ratio: 1,
+              colorKey: "",
+              color: [0.37, 0.55, 1],
+              secondary: [0.25, 0.3, 1],
+              pointer: { x: 0, y: 0, inside: !1 },
+              emitter: { x: 0, y: 0, vx: 0, vy: 0, px: 0, py: 0, travelled: 0 },
+              ready: !1,
+              bursts: [],
+              active: -1 / 0,
+              time: 0,
+              allocated: "",
+              targets: null,
+            },
+            A = 0,
+            F = 0,
+            B = !0,
+            C = !0,
+            P = new ResizeObserver(function () {
+              ($(), te());
+            });
+          P.observe(r);
+          var L = new IntersectionObserver(function (e) {
+            (C = e.some(function (e) {
+              return e.isIntersecting;
+            })) && ((F = 0), te());
+          });
+          L.observe(r);
+          var V = new MutationObserver(function () {
+            (I(), te());
+          });
+          (V.observe(document.documentElement, {
+            attributes: !0,
+            attributeFilter: ["data-theme"],
+          }),
+            window.addEventListener("pointermove", re, { passive: !0 }),
+            window.addEventListener("pointerdown", oe, { passive: !0 }),
+            document.documentElement.addEventListener("pointerleave", ne),
+            document.addEventListener("visibilitychange", ie),
+            $(),
+            Z(),
+            (window.GlowCursor = {
+              update: function (t) {
+                for (var o in t) o in e && (e[o] = t[o]);
+                (I(),
+                  t && void 0 !== t.zIndex && (r.style.zIndex = e.zIndex),
+                  $(),
+                  te());
+              },
+              destroy: function () {
+                for (var e in ((B = !1),
+                cancelAnimationFrame(A),
+                P.disconnect(),
+                L.disconnect(),
+                V.disconnect(),
+                window.removeEventListener("pointermove", re),
+                window.removeEventListener("pointerdown", oe),
+                document.documentElement.removeEventListener(
+                  "pointerleave",
+                  ne,
+                ),
+                document.removeEventListener("visibilitychange", ie),
+                z(),
+                w))
+                  g.deleteProgram(w[e].program);
+                (g.deleteShader(p),
+                  g.deleteBuffer(R),
+                  g.deleteVertexArray(T),
+                  r.remove(),
+                  delete window.GlowCursor);
+              },
+            }));
+        }
       }
     }
-
-    function createTarget(width, height, internalFormat, format, filter) {
-      var texture = gl.createTexture();
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, filter);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        internalFormat,
-        width,
-        height,
-        0,
-        format,
-        gl.HALF_FLOAT,
-        null,
-      );
-      var fbo = gl.createFramebuffer();
-      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
-      gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        gl.COLOR_ATTACHMENT0,
-        gl.TEXTURE_2D,
-        texture,
-        0,
-      );
-      gl.viewport(0, 0, width, height);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      return {
-        texture: texture,
-        fbo: fbo,
-        width: width,
-        height: height,
-        texel: [1 / width, 1 / height],
-      };
+    function _(e) {
+      var t = y(g, g.FRAGMENT_SHADER, e),
+        r = g.createProgram();
+      if (!t || !r) return null;
+      if (
+        (g.attachShader(r, p),
+        g.attachShader(r, t),
+        g.bindAttribLocation(r, 0, "aPosition"),
+        g.linkProgram(r),
+        g.deleteShader(t),
+        !g.getProgramParameter(r, g.LINK_STATUS))
+      )
+        return (g.deleteProgram(r), null);
+      for (
+        var o = {}, n = g.getProgramParameter(r, g.ACTIVE_UNIFORMS), i = 0;
+        i < n;
+        i++
+      ) {
+        var a = g.getActiveUniform(r, i);
+        a && (o[a.name] = g.getUniformLocation(r, a.name));
+      }
+      return { program: r, uniforms: o };
     }
-
-    function createPair(width, height, internalFormat, format, filter) {
-      var read = createTarget(width, height, internalFormat, format, filter);
-      var write = createTarget(width, height, internalFormat, format, filter);
+    function I() {
+      var r =
+          "light" === document.documentElement.getAttribute("data-theme")
+            ? "light"
+            : "dark",
+        o = t[r];
+      ((M = {
+        color: o.color,
+        secondaryColor: o.secondaryColor,
+        theme: o.theme,
+        intensity: Math.max(0, e.intensity),
+        trailWidth: h(e.trailWidth, 0.5, 40),
+        linger: h(e.linger, 0.1, 10),
+        glow: Math.max(0, e.glow),
+        hotspot: Math.max(0, e.hotspot),
+        followSpeed: h(e.followSpeed, 0, 1),
+        grain: Math.max(0, e.grain),
+        clickBurst: e.clickBurst,
+        quality: x[e.quality] ? e.quality : "high",
+        maxDevicePixelRatio: e.maxDevicePixelRatio,
+        enabled: e.enabled,
+      }),
+        (v.style.mixBlendMode = o.blend));
+    }
+    function G(e, t) {
+      if (!S || !e) return t;
+      var r = /^[0-9a-f]{3,8}$/i.test(e) ? "#" + e : e;
+      (S.clearRect(0, 0, 1, 1),
+        (S.fillStyle = "#000000"),
+        (S.fillStyle = r),
+        S.fillRect(0, 0, 1, 1));
+      var o = S.getImageData(0, 0, 1, 1).data;
+      return [o[0] / 255, o[1] / 255, o[2] / 255];
+    }
+    function k(e, t, r, o, n) {
+      var i = g.createTexture();
+      (g.bindTexture(g.TEXTURE_2D, i),
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, n),
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, n),
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_S, g.CLAMP_TO_EDGE),
+        g.texParameteri(g.TEXTURE_2D, g.TEXTURE_WRAP_T, g.CLAMP_TO_EDGE),
+        g.texImage2D(g.TEXTURE_2D, 0, r, e, t, 0, o, g.HALF_FLOAT, null));
+      var a = g.createFramebuffer();
+      return (
+        g.bindFramebuffer(g.FRAMEBUFFER, a),
+        g.framebufferTexture2D(
+          g.FRAMEBUFFER,
+          g.COLOR_ATTACHMENT0,
+          g.TEXTURE_2D,
+          i,
+          0,
+        ),
+        g.viewport(0, 0, e, t),
+        g.clearColor(0, 0, 0, 0),
+        g.clear(g.COLOR_BUFFER_BIT),
+        { texture: i, fbo: a, width: e, height: t, texel: [1 / e, 1 / t] }
+      );
+    }
+    function N(e, t, r, o, n) {
+      var i = k(e, t, r, o, n),
+        a = k(e, t, r, o, n);
       return {
         get read() {
-          return read;
+          return i;
         },
         get write() {
-          return write;
+          return a;
         },
         swap: function () {
-          var next = read;
-          read = write;
-          write = next;
+          var e = i;
+          ((i = a), (a = e));
         },
         targets: function () {
-          return [read, write];
+          return [i, a];
         },
       };
     }
-
-    function destroyTarget(target) {
-      gl.deleteTexture(target.texture);
-      gl.deleteFramebuffer(target.fbo);
+    function O(e) {
+      (g.deleteTexture(e.texture), g.deleteFramebuffer(e.fbo));
     }
-
-    function release() {
-      var t = state.targets;
-      if (!t) return;
-      []
-        .concat(
-          t.velocity.targets(),
-          t.dye.targets(),
-          t.pressure.targets(),
-          [t.divergence, t.forward, t.back],
-          t.bloom,
+    function z() {
+      var e = U.targets;
+      e &&
+        ([]
+          .concat(
+            e.velocity.targets(),
+            e.dye.targets(),
+            e.pressure.targets(),
+            [e.divergence, e.forward, e.back],
+            e.bloom,
+          )
+          .forEach(O),
+        (U.targets = null));
+    }
+    function X() {
+      var e = [M.quality, U.width, U.height, v.width, v.height].join("|");
+      if (e !== U.allocated || !U.targets) {
+        (z(), (U.allocated = e));
+        for (
+          var t = x[M.quality],
+            r = U.width / U.height,
+            o = m(t.sim),
+            n = m(t.dye),
+            i = n[0],
+            a = n[1],
+            u = Math.min(1, v.width / i, v.height / a),
+            l = [],
+            c = (i = Math.max(2, Math.round(i * u))) >> 1,
+            d = (a = Math.max(2, Math.round(a * u))) >> 1,
+            f = 0;
+          f < 5;
+          f++
         )
-        .forEach(destroyTarget);
-      state.targets = null;
-    }
-
-    function clearTargets() {
-      var t = state.targets;
-      if (!t) return;
-      gl.clearColor(0, 0, 0, 0);
-      []
-        .concat(t.velocity.targets(), t.dye.targets(), t.pressure.targets())
-        .forEach(function (target) {
-          gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
-          gl.clear(gl.COLOR_BUFFER_BIT);
-        });
-    }
-
-    function allocate() {
-      var key = [
-        S.quality,
-        state.width,
-        state.height,
-        canvas.width,
-        canvas.height,
-      ].join("|");
-      if (key === state.allocated && state.targets) return;
-      release();
-      state.allocated = key;
-      var preset = QUALITY[S.quality];
-      var aspect = state.width / state.height;
-      function dims(base) {
-        return aspect >= 1
-          ? [Math.round(base * aspect), base]
-          : [base, Math.round(base / aspect)];
-      }
-      var sim = dims(preset.sim);
-      var dye = dims(preset.dye);
-      var dyeW = dye[0],
-        dyeH = dye[1];
-      var shrink = Math.min(1, canvas.width / dyeW, canvas.height / dyeH);
-      dyeW = Math.max(2, Math.round(dyeW * shrink));
-      dyeH = Math.max(2, Math.round(dyeH * shrink));
-      var bloom = [];
-      var bloomW = dyeW >> 1;
-      var bloomH = dyeH >> 1;
-      for (var i = 0; i < BLOOM_LEVELS; i++) {
-        bloom.push(
-          createTarget(
-            Math.max(1, bloomW),
-            Math.max(1, bloomH),
-            gl.RGBA16F,
-            gl.RGBA,
-            gl.LINEAR,
+          (l.push(
+            k(Math.max(1, c), Math.max(1, d), g.RGBA16F, g.RGBA, g.LINEAR),
           ),
-        );
-        bloomW >>= 1;
-        bloomH >>= 1;
+            (c >>= 1),
+            (d >>= 1));
+        U.targets = {
+          velocity: N(o[0], o[1], g.RG16F, g.RG, g.LINEAR),
+          dye: N(i, a, g.RGBA16F, g.RGBA, g.LINEAR),
+          forward: k(i, a, g.RGBA16F, g.RGBA, g.LINEAR),
+          back: k(i, a, g.RGBA16F, g.RGBA, g.LINEAR),
+          pressure: N(o[0], o[1], g.R16F, g.RED, g.NEAREST),
+          divergence: k(o[0], o[1], g.R16F, g.RED, g.NEAREST),
+          bloom: l,
+        };
       }
-      state.targets = {
-        velocity: createPair(sim[0], sim[1], gl.RG16F, gl.RG, gl.LINEAR),
-        dye: createPair(dyeW, dyeH, gl.RGBA16F, gl.RGBA, gl.LINEAR),
-        forward: createTarget(dyeW, dyeH, gl.RGBA16F, gl.RGBA, gl.LINEAR),
-        back: createTarget(dyeW, dyeH, gl.RGBA16F, gl.RGBA, gl.LINEAR),
-        pressure: createPair(sim[0], sim[1], gl.R16F, gl.RED, gl.NEAREST),
-        divergence: createTarget(sim[0], sim[1], gl.R16F, gl.RED, gl.NEAREST),
-        bloom: bloom,
-      };
+      function m(e) {
+        return r >= 1 ? [Math.round(e * r), e] : [e, Math.round(e / r)];
+      }
     }
-
-    function resize() {
-      var width = Math.max(1, container.clientWidth);
-      var height = Math.max(1, container.clientHeight);
-      var ratio = Math.min(
-        window.devicePixelRatio || 1,
-        Math.max(0.5, S.maxDevicePixelRatio || 2),
+    function $() {
+      var e = Math.max(1, r.clientWidth),
+        t = Math.max(1, r.clientHeight),
+        o = Math.min(
+          window.devicePixelRatio || 1,
+          Math.max(0.5, M.maxDevicePixelRatio || 2),
+        ),
+        n = Math.max(1, Math.round(e * o)),
+        i = Math.max(1, Math.round(t * o));
+      ((v.width === n && v.height === i) || ((v.width = n), (v.height = i)),
+        (U.width = e),
+        (U.height = t),
+        (U.ratio = o),
+        X());
+    }
+    function W(e) {
+      (e
+        ? (g.bindFramebuffer(g.FRAMEBUFFER, e.fbo),
+          g.viewport(0, 0, e.width, e.height))
+        : (g.bindFramebuffer(g.FRAMEBUFFER, null),
+          g.viewport(0, 0, v.width, v.height)),
+        g.drawArrays(g.TRIANGLES, 0, 3));
+    }
+    function q(e, t) {
+      return (
+        g.useProgram(e.program),
+        e.uniforms.uTexel && g.uniform2f(e.uniforms.uTexel, t[0], t[1]),
+        e.uniforms
       );
-      var pw = Math.max(1, Math.round(width * ratio));
-      var ph = Math.max(1, Math.round(height * ratio));
-      if (canvas.width !== pw || canvas.height !== ph) {
-        canvas.width = pw;
-        canvas.height = ph;
-      }
-      state.width = width;
-      state.height = height;
-      state.ratio = ratio;
-      allocate();
     }
-
-    function draw(target) {
-      if (target) {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo);
-        gl.viewport(0, 0, target.width, target.height);
-      } else {
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.viewport(0, 0, canvas.width, canvas.height);
-      }
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    function H(e, t) {
+      return (
+        g.activeTexture(g.TEXTURE0 + e),
+        g.bindTexture(g.TEXTURE_2D, t.texture),
+        e
+      );
     }
-
-    function use(pass, texel) {
-      gl.useProgram(pass.program);
-      if (pass.uniforms.uTexel)
-        gl.uniform2f(pass.uniforms.uTexel, texel[0], texel[1]);
-      return pass.uniforms;
+    function K(e, t, r, o, n, i, a, u, l, c) {
+      void 0 === c && (c = i);
+      var v = q(w.splat, e.read.texel);
+      (g.uniform1i(v.uTarget, H(0, e.read)),
+        g.uniform1f(v.uAspect, U.width / U.height),
+        g.uniform2f(v.uA, t / U.width, 1 - r / U.height),
+        g.uniform2f(v.uB, o / U.width, 1 - n / U.height),
+        g.uniform1f(v.uRadius, i / U.height),
+        g.uniform1f(v.uWide, c / U.height),
+        g.uniform3f(v.uValue, a[0], a[1], a[2]),
+        g.uniform1f(v.uMode, u),
+        g.uniform1f(v.uStrength, l),
+        W(e.write),
+        e.swap());
     }
-
-    function bind(unit, target) {
-      gl.activeTexture(gl.TEXTURE0 + unit);
-      gl.bindTexture(gl.TEXTURE_2D, target.texture);
-      return unit;
+    function Y(e, t) {
+      var r = U.targets.velocity;
+      return [(e * r.read.width) / U.width, (-t * r.read.height) / U.height];
     }
-
-    function splat(pair, ax, ay, bx, by, radius, value, mode, strength, wide) {
-      if (wide === undefined) wide = radius;
-      var u = use(passes.splat, pair.read.texel);
-      gl.uniform1i(u.uTarget, bind(0, pair.read));
-      gl.uniform1f(u.uAspect, state.width / state.height);
-      gl.uniform2f(u.uA, ax / state.width, 1 - ay / state.height);
-      gl.uniform2f(u.uB, bx / state.width, 1 - by / state.height);
-      gl.uniform1f(u.uRadius, radius / state.height);
-      gl.uniform1f(u.uWide, wide / state.height);
-      gl.uniform3f(u.uValue, value[0], value[1], value[2]);
-      gl.uniform1f(u.uMode, mode);
-      gl.uniform1f(u.uStrength, strength);
-      draw(pair.write);
-      pair.swap();
-    }
-
-    function toGrid(vx, vy) {
-      var velocity = state.targets.velocity;
-      return [
-        (vx * velocity.read.width) / state.width,
-        (-vy * velocity.read.height) / state.height,
-      ];
-    }
-
-    function lightRadius() {
+    function j() {
       return Math.max(
-        S.trailWidth * 0.5,
-        (state.height / state.targets.dye.read.height) * 0.9,
+        0.5 * M.trailWidth,
+        (U.height / U.targets.dye.read.height) * 0.9,
       );
     }
-
-    function emit(dt, now) {
-      var emitter = state.emitter,
-        pointer = state.pointer;
-      var velocity = state.targets.velocity,
-        dye = state.targets.dye;
-      emitter.px = emitter.x;
-      emitter.py = emitter.y;
-      if (reduce || S.followSpeed >= 1) {
-        emitter.x = pointer.x;
-        emitter.y = pointer.y;
-      } else {
-        var omega = 10 + S.followSpeed * 50;
-        var steps = Math.max(1, Math.ceil(dt / 0.004));
-        var h = dt / steps;
-        for (var k = 0; k < steps; k++) {
-          emitter.vx +=
-            (omega * omega * (pointer.x - emitter.x) - 2 * omega * emitter.vx) *
-            h;
-          emitter.vy +=
-            (omega * omega * (pointer.y - emitter.y) - 2 * omega * emitter.vy) *
-            h;
-          emitter.x += emitter.vx * h;
-          emitter.y += emitter.vy * h;
+    function J(e, t, r) {
+      for (
+        var o = U.targets.velocity,
+          n = U.targets.dye,
+          i = j(),
+          a = Math.random() * Math.PI * 2,
+          u = 0;
+        u < 6;
+        u++
+      ) {
+        var l = a + (u / 6) * Math.PI * 2 + 0.5 * (Math.random() - 0.5),
+          c = Math.cos(l),
+          v = Math.sin(l),
+          d = 20 + 14 * Math.random(),
+          f = e + 3 * c,
+          m = t + 3 * v,
+          s = e + c * d,
+          x = t + v * d;
+        if (!D) {
+          var h = Y(760 * Math.cos(l + 0.6), 760 * Math.sin(l + 0.6));
+          K(o, f, m, s, x, 18, [h[0], h[1], 0], 1, 0.9);
         }
+        K(n, f, m, s, x, 1.1 * i, [2.4, 2.4, 0.3], 0, 1, 5 * i + 6);
       }
-      var dx = emitter.x - emitter.px;
-      var dy = emitter.y - emitter.py;
-      var length = Math.hypot(dx, dy);
-      if (length < 0.05 || !S.enabled) return;
-      var radius = lightRadius();
-      if (!reduce) {
-        var target = toGrid(dx / Math.max(dt, 1e-3), dy / Math.max(dt, 1e-3));
-        splat(
-          velocity,
-          emitter.px,
-          emitter.py,
-          emitter.x,
-          emitter.y,
-          radius * 4 + 18,
-          [target[0], target[1], 0],
-          3,
-          FLOW * 0.6,
-        );
-      }
-      splat(
-        dye,
-        emitter.px,
-        emitter.py,
-        emitter.x,
-        emitter.y,
-        radius,
-        [5.6, 5.6, 0.7],
-        2,
-        1,
-        radius * 5 + 6,
-      );
-      state.active = now;
+      (K(n, e, t, e + 0.01, t, 2.2 * i, [1.8, 1.8, 0.4], 0, 1, 7 * i + 10),
+        (U.active = r));
     }
-
-    function burst(x, y, now) {
-      var velocity = state.targets.velocity,
-        dye = state.targets.dye;
-      var radius = lightRadius();
-      var jets = 6;
-      var base = Math.random() * Math.PI * 2;
-      for (var k = 0; k < jets; k++) {
-        var angle =
-          base + (k / jets) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
-        var cx = Math.cos(angle);
-        var cy = Math.sin(angle);
-        var reach = 20 + Math.random() * 14;
-        var ax = x + cx * 3;
-        var ay = y + cy * 3;
-        var bx = x + cx * reach;
-        var by = y + cy * reach;
-        if (!reduce) {
-          var target = toGrid(
-            Math.cos(angle + 0.6) * 760,
-            Math.sin(angle + 0.6) * 760,
+    function Q(e) {
+      (g.uniform3f(e.uColor, U.color[0], U.color[1], U.color[2]),
+        g.uniform3f(
+          e.uSecondary,
+          U.secondary[0],
+          U.secondary[1],
+          U.secondary[2],
+        ),
+        g.uniform1f(e.uIntensity, M.intensity),
+        g.uniform1f(e.uHotspot, M.hotspot));
+    }
+    function Z() {
+      (g.bindFramebuffer(g.FRAMEBUFFER, null),
+        g.viewport(0, 0, v.width, v.height),
+        g.clearColor(0, 0, 0, 0),
+        g.clear(g.COLOR_BUFFER_BIT));
+    }
+    function ee(e) {
+      if (((A = 0), B && C && !document.hidden)) {
+        var t = F ? Math.min(1 / 30, (e - F) / 1e3) : 1 / 60;
+        ((F = e), (U.time += t));
+        var r = Math.min(
+          window.devicePixelRatio || 1,
+          Math.max(0.5, M.maxDevicePixelRatio || 2),
+        );
+        for (
+          Math.abs(r - U.ratio) > 0.01 && $(),
+            X(),
+            (function () {
+              var e,
+                t,
+                r,
+                o,
+                n,
+                i,
+                a,
+                u = M.color + "|" + M.secondaryColor;
+              if (u !== U.colorKey)
+                if (
+                  ((U.colorKey = u),
+                  (U.color = G(M.color, [0.37, 0.55, 1])),
+                  M.secondaryColor)
+                )
+                  U.secondary = G(M.secondaryColor, U.color);
+                else {
+                  var l =
+                    ((t = (e = U.color)[0]),
+                    (r = e[1]),
+                    (o = e[2]),
+                    (a = 0),
+                    (i = (n = Math.max(t, r, o)) - Math.min(t, r, o)) > 0 &&
+                      (a =
+                        n === t
+                          ? ((r - o) / i) % 6
+                          : n === r
+                            ? (o - t) / i + 2
+                            : (t - r) / i + 4),
+                    [(60 * a + 360) % 360, n > 0 ? i / n : 0, n]);
+                  U.secondary = (function (e, t, r) {
+                    var o = (((e % 360) + 360) % 360) / 60,
+                      n = r * t,
+                      i = n * (1 - Math.abs((o % 2) - 1)),
+                      a = r - n,
+                      u =
+                        o < 1
+                          ? [n, i, 0]
+                          : o < 2
+                            ? [i, n, 0]
+                            : o < 3
+                              ? [0, n, i]
+                              : o < 4
+                                ? [0, i, n]
+                                : o < 5
+                                  ? [i, 0, n]
+                                  : [n, 0, i];
+                    return [u[0] + a, u[1] + a, u[2] + a];
+                  })(l[0] + 8, Math.min(1, 1.1 * l[1] + 0.05), l[2]);
+                }
+            })(),
+            g.bindVertexArray(T),
+            g.disable(g.BLEND),
+            U.ready &&
+              (function (e, t) {
+                var r = U.emitter,
+                  o = U.pointer,
+                  n = U.targets.velocity,
+                  i = U.targets.dye;
+                if (((r.px = r.x), (r.py = r.y), D || M.followSpeed >= 1))
+                  ((r.x = o.x), (r.y = o.y));
+                else
+                  for (
+                    var a = 10 + 50 * M.followSpeed,
+                      u = Math.max(1, Math.ceil(e / 0.004)),
+                      l = e / u,
+                      c = 0;
+                    c < u;
+                    c++
+                  )
+                    ((r.vx += (a * a * (o.x - r.x) - 2 * a * r.vx) * l),
+                      (r.vy += (a * a * (o.y - r.y) - 2 * a * r.vy) * l),
+                      (r.x += r.vx * l),
+                      (r.y += r.vy * l));
+                var v = r.x - r.px,
+                  d = r.y - r.py;
+                if (!(Math.hypot(v, d) < 0.05) && M.enabled) {
+                  var f = j();
+                  if (!D) {
+                    var m = Y(v / Math.max(e, 0.001), d / Math.max(e, 0.001));
+                    K(
+                      n,
+                      r.px,
+                      r.py,
+                      r.x,
+                      r.y,
+                      4 * f + 18,
+                      [m[0], m[1], 0],
+                      3,
+                      0.75 * 0.6,
+                    );
+                  }
+                  (K(
+                    i,
+                    r.px,
+                    r.py,
+                    r.x,
+                    r.y,
+                    f,
+                    [5.6, 5.6, 0.7],
+                    2,
+                    1,
+                    5 * f + 6,
+                  ),
+                    (U.active = t));
+                }
+              })(t, e);
+          U.bursts.length;
+        ) {
+          var o = U.bursts.shift();
+          J(o[0], o[1], e);
+        }
+        (!(function (e) {
+          var t,
+            r = U.targets.velocity,
+            o = U.targets.dye,
+            n = U.targets.pressure,
+            i = U.targets.divergence;
+          if (!D) {
+            ((t = q(w.divergence, r.read.texel)),
+              g.uniform1i(t.uVelocity, H(0, r.read)),
+              W(i),
+              (t = q(w.scale, n.read.texel)),
+              g.uniform1i(t.uSource, H(0, n.read)),
+              g.uniform1f(t.uValue, 0.8),
+              W(n.write),
+              n.swap(),
+              (t = q(w.pressure, n.read.texel)),
+              g.uniform1i(t.uDivergence, H(1, i)));
+            for (var a = 0; a < 20; a++)
+              (g.uniform1i(t.uPressure, H(0, n.read)), W(n.write), n.swap());
+            ((t = q(w.gradient, r.read.texel)),
+              g.uniform1i(t.uPressure, H(0, n.read)),
+              g.uniform1i(t.uVelocity, H(1, r.read)),
+              W(r.write),
+              r.swap(),
+              (t = q(w.advect, r.read.texel)),
+              g.uniform2f(t.uVelocityTexel, r.read.texel[0], r.read.texel[1]),
+              g.uniform1i(t.uVelocity, H(0, r.read)),
+              g.uniform1i(t.uSource, H(0, r.read)),
+              g.uniform1f(t.uDt, e));
+            var u = Math.exp(1.2 * -e);
+            (g.uniform4f(t.uDecay, u, u, 1, 1), W(r.write), r.swap());
+          }
+          var l = [
+              Math.exp((4.6 * -e) / (0.8 * M.linger)),
+              Math.exp((4.6 * -e) / (0.2 * M.linger)),
+              Math.exp((4.6 * -e) / (1.2 * M.linger)),
+              1,
+            ],
+            c = U.targets.forward,
+            v = U.targets.back;
+          if (D)
+            return (
+              (t = q(w.advect, o.read.texel)),
+              g.uniform2f(t.uVelocityTexel, r.read.texel[0], r.read.texel[1]),
+              g.uniform1i(t.uVelocity, H(0, r.read)),
+              g.uniform1i(t.uSource, H(1, o.read)),
+              g.uniform1f(t.uDt, 0),
+              g.uniform4f(t.uDecay, l[0], l[1], l[2], l[3]),
+              W(o.write),
+              void o.swap()
+            );
+          ((t = q(w.advect, o.read.texel)),
+            g.uniform2f(t.uVelocityTexel, r.read.texel[0], r.read.texel[1]),
+            g.uniform1i(t.uVelocity, H(0, r.read)),
+            g.uniform1i(t.uSource, H(1, o.read)),
+            g.uniform1f(t.uDt, e),
+            g.uniform4f(t.uDecay, 1, 1, 1, 1),
+            W(c),
+            g.uniform1i(t.uSource, H(1, c)),
+            g.uniform1f(t.uDt, -e),
+            W(v),
+            (t = q(w.maccormack, o.read.texel)),
+            g.uniform2f(t.uVelocityTexel, r.read.texel[0], r.read.texel[1]),
+            g.uniform2f(t.uSourceTexel, o.read.texel[0], o.read.texel[1]),
+            g.uniform1i(t.uVelocity, H(0, r.read)),
+            g.uniform1i(t.uSource, H(1, o.read)),
+            g.uniform1i(t.uForward, H(2, c)),
+            g.uniform1i(t.uBack, H(3, v)),
+            g.uniform1f(t.uDt, e),
+            g.uniform4f(t.uDecay, l[0], l[1], l[2], l[3]),
+            W(o.write),
+            o.swap());
+        })(t),
+          (function () {
+            var e,
+              t = U.targets.dye,
+              r = U.targets.bloom;
+            if (M.glow > 0) {
+              ((e = q(w.prefilter, r[0].texel)),
+                g.uniform1i(e.uDye, H(0, t.read)),
+                g.uniform2f(e.uDyeTexel, t.read.texel[0], t.read.texel[1]),
+                Q(e),
+                W(r[0]),
+                (e = q(w.down, r[0].texel)));
+              for (var o = 1; o < r.length; o++)
+                (g.uniform1i(e.uSource, H(0, r[o - 1])),
+                  g.uniform2f(
+                    e.uSourceTexel,
+                    r[o - 1].texel[0],
+                    r[o - 1].texel[1],
+                  ),
+                  W(r[o]));
+              (g.enable(g.BLEND),
+                g.blendFunc(g.ONE, g.ONE),
+                (e = q(w.up, r[0].texel)));
+              for (var n = r.length - 1; n > 0; n--)
+                (g.uniform1i(e.uSource, H(0, r[n])),
+                  g.uniform2f(e.uSourceTexel, r[n].texel[0], r[n].texel[1]),
+                  W(r[n - 1]));
+              g.disable(g.BLEND);
+            }
+            ((e = q(w.display, [1 / v.width, 1 / v.height])),
+              g.uniform1i(e.uDye, H(0, t.read)),
+              g.uniform1i(e.uBloom, H(1, r[0])),
+              Q(e),
+              g.uniform1f(e.uGlow, M.glow > 0 ? (1.4 * M.glow) / 5 : 0),
+              g.uniform1f(e.uGrain, M.grain),
+              g.uniform1f(e.uTime, U.time),
+              g.uniform1f(e.uLight, "light" === M.theme ? 1 : 0),
+              W(null));
+          })());
+        var n,
+          i = e - U.active > 1200 * M.linger + 900,
+          a = Math.hypot(U.emitter.vx, U.emitter.vy) < 1;
+        if (i && a)
+          return (
+            (n = U.targets) &&
+              (g.clearColor(0, 0, 0, 0),
+              []
+                .concat(
+                  n.velocity.targets(),
+                  n.dye.targets(),
+                  n.pressure.targets(),
+                )
+                .forEach(function (e) {
+                  (g.bindFramebuffer(g.FRAMEBUFFER, e.fbo),
+                    g.clear(g.COLOR_BUFFER_BIT));
+                })),
+            Z(),
+            void (F = 0)
           );
-          splat(
-            velocity,
-            ax,
-            ay,
-            bx,
-            by,
-            18,
-            [target[0], target[1], 0],
-            1,
-            0.9,
-          );
-        }
-        splat(
-          dye,
-          ax,
-          ay,
-          bx,
-          by,
-          radius * 1.1,
-          [2.4, 2.4, 0.3],
-          0,
-          1,
-          radius * 5 + 6,
-        );
+        A = requestAnimationFrame(ee);
       }
-      splat(
-        dye,
-        x,
-        y,
-        x + 0.01,
-        y,
-        radius * 2.2,
-        [1.8, 1.8, 0.4],
-        0,
-        1,
-        radius * 7 + 10,
-      );
-      state.active = now;
     }
-
-    function step(dt) {
-      var velocity = state.targets.velocity,
-        dye = state.targets.dye;
-      var pressure = state.targets.pressure,
-        divergence = state.targets.divergence;
-      var u;
-      if (!reduce) {
-        u = use(passes.divergence, velocity.read.texel);
-        gl.uniform1i(u.uVelocity, bind(0, velocity.read));
-        draw(divergence);
-
-        u = use(passes.scale, pressure.read.texel);
-        gl.uniform1i(u.uSource, bind(0, pressure.read));
-        gl.uniform1f(u.uValue, 0.8);
-        draw(pressure.write);
-        pressure.swap();
-
-        u = use(passes.pressure, pressure.read.texel);
-        gl.uniform1i(u.uDivergence, bind(1, divergence));
-        for (var i = 0; i < PRESSURE_STEPS; i++) {
-          gl.uniform1i(u.uPressure, bind(0, pressure.read));
-          draw(pressure.write);
-          pressure.swap();
-        }
-
-        u = use(passes.gradient, velocity.read.texel);
-        gl.uniform1i(u.uPressure, bind(0, pressure.read));
-        gl.uniform1i(u.uVelocity, bind(1, velocity.read));
-        draw(velocity.write);
-        velocity.swap();
-
-        u = use(passes.advect, velocity.read.texel);
-        gl.uniform2f(
-          u.uVelocityTexel,
-          velocity.read.texel[0],
-          velocity.read.texel[1],
-        );
-        gl.uniform1i(u.uVelocity, bind(0, velocity.read));
-        gl.uniform1i(u.uSource, bind(0, velocity.read));
-        gl.uniform1f(u.uDt, dt);
-        var calm = Math.exp(-dt * 1.2);
-        gl.uniform4f(u.uDecay, calm, calm, 1, 1);
-        draw(velocity.write);
-        velocity.swap();
+    function te() {
+      !A && B && C && !document.hidden && (A = requestAnimationFrame(ee));
+    }
+    function re(e) {
+      var t = r.getBoundingClientRect(),
+        o = e.clientX - t.left,
+        n = e.clientY - t.top;
+      o >= 0 && n >= 0 && o <= t.width && n <= t.height
+        ? (U.ready ||
+            ((U.emitter.x = o),
+            (U.emitter.y = n),
+            (U.emitter.px = o),
+            (U.emitter.py = n),
+            (U.emitter.vx = 0),
+            (U.emitter.vy = 0),
+            (U.ready = !0)),
+          (U.pointer.x = o),
+          (U.pointer.y = n),
+          (U.pointer.inside = !0),
+          te())
+        : U.pointer.inside && ((U.pointer.inside = !1), (U.ready = !1), te());
+    }
+    function oe(e) {
+      if (M.clickBurst && M.enabled) {
+        var t = r.getBoundingClientRect(),
+          o = e.clientX - t.left,
+          n = e.clientY - t.top;
+        o < 0 ||
+          n < 0 ||
+          o > t.width ||
+          n > t.height ||
+          (U.bursts.push([o, n]), te());
       }
-
-      var decay = [
-        Math.exp((-dt * 4.6) / (S.linger * 0.8)),
-        Math.exp((-dt * 4.6) / (S.linger * 0.2)),
-        Math.exp((-dt * 4.6) / (S.linger * 1.2)),
-        1,
-      ];
-      var forward = state.targets.forward,
-        back = state.targets.back;
-      if (reduce) {
-        u = use(passes.advect, dye.read.texel);
-        gl.uniform2f(
-          u.uVelocityTexel,
-          velocity.read.texel[0],
-          velocity.read.texel[1],
-        );
-        gl.uniform1i(u.uVelocity, bind(0, velocity.read));
-        gl.uniform1i(u.uSource, bind(1, dye.read));
-        gl.uniform1f(u.uDt, 0);
-        gl.uniform4f(u.uDecay, decay[0], decay[1], decay[2], decay[3]);
-        draw(dye.write);
-        dye.swap();
-        return;
-      }
-      u = use(passes.advect, dye.read.texel);
-      gl.uniform2f(
-        u.uVelocityTexel,
-        velocity.read.texel[0],
-        velocity.read.texel[1],
-      );
-      gl.uniform1i(u.uVelocity, bind(0, velocity.read));
-      gl.uniform1i(u.uSource, bind(1, dye.read));
-      gl.uniform1f(u.uDt, dt);
-      gl.uniform4f(u.uDecay, 1, 1, 1, 1);
-      draw(forward);
-      gl.uniform1i(u.uSource, bind(1, forward));
-      gl.uniform1f(u.uDt, -dt);
-      draw(back);
-      u = use(passes.maccormack, dye.read.texel);
-      gl.uniform2f(
-        u.uVelocityTexel,
-        velocity.read.texel[0],
-        velocity.read.texel[1],
-      );
-      gl.uniform2f(u.uSourceTexel, dye.read.texel[0], dye.read.texel[1]);
-      gl.uniform1i(u.uVelocity, bind(0, velocity.read));
-      gl.uniform1i(u.uSource, bind(1, dye.read));
-      gl.uniform1i(u.uForward, bind(2, forward));
-      gl.uniform1i(u.uBack, bind(3, back));
-      gl.uniform1f(u.uDt, dt);
-      gl.uniform4f(u.uDecay, decay[0], decay[1], decay[2], decay[3]);
-      draw(dye.write);
-      dye.swap();
     }
-
-    function setShade(u) {
-      gl.uniform3f(u.uColor, state.color[0], state.color[1], state.color[2]);
-      gl.uniform3f(
-        u.uSecondary,
-        state.secondary[0],
-        state.secondary[1],
-        state.secondary[2],
-      );
-      gl.uniform1f(u.uIntensity, S.intensity);
-      gl.uniform1f(u.uHotspot, S.hotspot);
+    function ne() {
+      ((U.pointer.inside = !1), (U.ready = !1), te());
     }
-
-    function render() {
-      var dye = state.targets.dye,
-        bloom = state.targets.bloom;
-      var u;
-      if (S.glow > 0) {
-        u = use(passes.prefilter, bloom[0].texel);
-        gl.uniform1i(u.uDye, bind(0, dye.read));
-        gl.uniform2f(u.uDyeTexel, dye.read.texel[0], dye.read.texel[1]);
-        setShade(u);
-        draw(bloom[0]);
-        u = use(passes.down, bloom[0].texel);
-        for (var i = 1; i < bloom.length; i++) {
-          gl.uniform1i(u.uSource, bind(0, bloom[i - 1]));
-          gl.uniform2f(
-            u.uSourceTexel,
-            bloom[i - 1].texel[0],
-            bloom[i - 1].texel[1],
-          );
-          draw(bloom[i]);
-        }
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE);
-        u = use(passes.up, bloom[0].texel);
-        for (var j = bloom.length - 1; j > 0; j--) {
-          gl.uniform1i(u.uSource, bind(0, bloom[j]));
-          gl.uniform2f(u.uSourceTexel, bloom[j].texel[0], bloom[j].texel[1]);
-          draw(bloom[j - 1]);
-        }
-        gl.disable(gl.BLEND);
-      }
-      u = use(passes.display, [1 / canvas.width, 1 / canvas.height]);
-      gl.uniform1i(u.uDye, bind(0, dye.read));
-      gl.uniform1i(u.uBloom, bind(1, bloom[0]));
-      setShade(u);
-      gl.uniform1f(u.uGlow, S.glow > 0 ? (S.glow * 1.4) / BLOOM_LEVELS : 0);
-      gl.uniform1f(u.uGrain, S.grain);
-      gl.uniform1f(u.uTime, state.time);
-      gl.uniform1f(u.uLight, S.theme === "light" ? 1 : 0);
-      draw(null);
+    function ie() {
+      ((F = 0), te());
     }
-
-    function blank() {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-    }
-
-    function frame(now) {
-      raf = 0;
-      if (!alive || !visible || document.hidden) return;
-      var dt = last ? Math.min(1 / 30, (now - last) / 1000) : 1 / 60;
-      last = now;
-      state.time += dt;
-      var wanted = Math.min(
-        window.devicePixelRatio || 1,
-        Math.max(0.5, S.maxDevicePixelRatio || 2),
-      );
-      if (Math.abs(wanted - state.ratio) > 0.01) resize();
-      allocate();
-      resolveColors();
-      gl.bindVertexArray(vao);
-      gl.disable(gl.BLEND);
-
-      if (state.ready) emit(dt, now);
-      while (state.bursts.length) {
-        var b = state.bursts.shift();
-        burst(b[0], b[1], now);
-      }
-      step(dt);
-      render();
-
-      var quiet = now - state.active > S.linger * 1200 + 900;
-      var resting = Math.hypot(state.emitter.vx, state.emitter.vy) < 1;
-      if (quiet && resting) {
-        clearTargets();
-        blank();
-        last = 0;
-        return;
-      }
-      raf = requestAnimationFrame(frame);
-    }
-
-    function wake() {
-      if (!raf && alive && visible && !document.hidden)
-        raf = requestAnimationFrame(frame);
-    }
-
-    /* ---- events ---- */
-    function onPointerMove(event) {
-      var rect = container.getBoundingClientRect();
-      var x = event.clientX - rect.left;
-      var y = event.clientY - rect.top;
-      var inside = x >= 0 && y >= 0 && x <= rect.width && y <= rect.height;
-      if (!inside) {
-        if (state.pointer.inside) {
-          state.pointer.inside = false;
-          state.ready = false;
-          wake();
-        }
-        return;
-      }
-      if (!state.ready) {
-        state.emitter.x = x;
-        state.emitter.y = y;
-        state.emitter.px = x;
-        state.emitter.py = y;
-        state.emitter.vx = 0;
-        state.emitter.vy = 0;
-        state.ready = true;
-      }
-      state.pointer.x = x;
-      state.pointer.y = y;
-      state.pointer.inside = true;
-      wake();
-    }
-
-    function onPointerDown(event) {
-      if (!S.clickBurst || !S.enabled) return;
-      var rect = container.getBoundingClientRect();
-      var x = event.clientX - rect.left;
-      var y = event.clientY - rect.top;
-      if (x < 0 || y < 0 || x > rect.width || y > rect.height) return;
-      state.bursts.push([x, y]);
-      wake();
-    }
-
-    function onPointerLeave() {
-      state.pointer.inside = false;
-      state.ready = false;
-      wake();
-    }
-
-    function onVisibility() {
-      last = 0;
-      wake();
-    }
-
-    var resizeObserver = new ResizeObserver(function () {
-      resize();
-      wake();
-    });
-    resizeObserver.observe(container);
-
-    var intersection = new IntersectionObserver(function (entries) {
-      visible = entries.some(function (e) {
-        return e.isIntersecting;
-      });
-      if (visible) {
-        last = 0;
-        wake();
-      }
-    });
-    intersection.observe(container);
-
-    // Follow the site's dark/light toggle
-    var themeObserver = new MutationObserver(function () {
-      syncSettings();
-      wake();
-    });
-    themeObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-
-    window.addEventListener("pointermove", onPointerMove, { passive: true });
-    window.addEventListener("pointerdown", onPointerDown, { passive: true });
-    document.documentElement.addEventListener("pointerleave", onPointerLeave);
-    document.addEventListener("visibilitychange", onVisibility);
-    resize();
-    blank();
-
-    /* ---- public API ---- */
-    window.GlowCursor = {
-      update: function (opts) {
-        for (var k in opts) if (k in SETTINGS) SETTINGS[k] = opts[k];
-        syncSettings();
-        if (opts && opts.zIndex !== undefined)
-          container.style.zIndex = SETTINGS.zIndex;
-        resize();
-        wake();
-      },
-      destroy: function () {
-        alive = false;
-        cancelAnimationFrame(raf);
-        resizeObserver.disconnect();
-        intersection.disconnect();
-        themeObserver.disconnect();
-        window.removeEventListener("pointermove", onPointerMove);
-        window.removeEventListener("pointerdown", onPointerDown);
-        document.documentElement.removeEventListener(
-          "pointerleave",
-          onPointerLeave,
-        );
-        document.removeEventListener("visibilitychange", onVisibility);
-        release();
-        for (var k in passes) gl.deleteProgram(passes[k].program);
-        gl.deleteShader(vertexShader);
-        gl.deleteBuffer(buffer);
-        gl.deleteVertexArray(vao);
-        container.remove();
-        delete window.GlowCursor;
-      },
-    };
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
   }
 })();
