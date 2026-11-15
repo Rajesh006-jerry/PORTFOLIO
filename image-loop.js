@@ -87,7 +87,7 @@
       "5FA04E",
       0,
       0,
-      "M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L3.075,6.68C2.99,6.729,2.936,6.825,2.936,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.57,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528,0.235-1.233,2.258-1.233 c1.807,0,2.473,0.389,2.747,1.607c0.024,0.115,0.129,0.199,0.247,0.199h1.141c0.071,0,0.138-0.031,0.186-0.081 c0.048-0.054,0.074-0.123,0.067-0.196c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695c2.88,0.282,3.103,0.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248C17.501,17.007,19.099,15.91,19.099,13.993z",
+      "M11.998,24c-0.321,0-0.641-0.084-0.922-0.247l-2.936-1.737c-0.438-0.245-0.224-0.332-0.08-0.383 c0.585-0.203,0.703-0.25,1.328-0.604c0.065-0.037,0.151-0.023,0.218,0.017l2.256,1.339c0.082,0.045,0.197,0.045,0.272,0l8.795-5.076 c0.082-0.047,0.134-0.141,0.134-0.238V6.921c0-0.099-0.053-0.192-0.137-0.242l-8.791-5.072c-0.081-0.047-0.189-0.047-0.271,0 L3.075,6.68C2.99,6.729,2.936,6.825,2.936,6.921v10.15c0,0.097,0.054,0.189,0.139,0.235l2.409,1.392 c1.307,0.654,2.108-0.116,2.108-0.89V7.787c0-0.142,0.114-0.253,0.256-0.253h1.115c0.139,0,0.255,0.112,0.255,0.253v10.021 c0,1.745-0.95,2.745-2.604,2.745c-0.508,0-0.909,0-2.026-0.551L2.28,18.675c-0.57-0.329-0.922-0.945-0.922-1.604V6.921 c0-0.659,0.353-1.275,0.922-1.603l8.795-5.082c0.557-0.315,1.296-0.315,1.848,0l8.794,5.082c0.57,0.329,0.924,0.944,0.924,1.603 v10.15c0,0.659-0.354,1.273-0.924,1.604l-8.794,5.078C12.643,23.916,12.324,24,11.998,24z M19.099,13.993 c0-1.9-1.284-2.406-3.987-2.763c-2.731-0.361-3.009-0.548-3.009-1.187c0-0.528.235-1.233,2.258-1.233 c1.807,0,2.473.389,2.747,1.607c0.024.115.129.199.247.199h1.141c0.071,0,0.138-0.031.186-0.081 c0.048-0.054.074-0.123.067-0.196c-0.177-2.098-1.571-3.076-4.388-3.076c-2.508,0-4.004,1.058-4.004,2.833 c0,1.925,1.488,2.457,3.895,2.695c2.88,0.282,3.103.703,3.103,1.269c0,0.983-0.789,1.402-2.642,1.402 c-2.327,0-2.839-0.584-3.011-1.742c-0.02-0.124-0.126-0.215-0.253-0.215h-1.137c-0.141,0-0.254,0.112-0.254,0.253 c0,1.482,0.806,3.248,4.655,3.248C17.501,17.007,19.099,15.91,19.099,13.993z",
     ],
     express: [
       "Express.js",
@@ -466,37 +466,100 @@
   .ss-bar{height:3px;max-width:none;margin-top:2rem;border-radius:3px;background:var(--e-line,rgba(224,175,34,.3));overflow:hidden}
   .ss-bar i{display:block;height:100%;width:0;background:var(--e-accent,#e0af22);transition:width .5s cubic-bezier(.2,.8,.2,1)}
   .ss-card{transition:rotate .6s cubic-bezier(.2,.8,.2,1),translate .6s cubic-bezier(.2,.8,.2,1),opacity .4s}
-  @media(max-width:899px){.ss-stack{width:min(62%,250px)}.ss-stack-col{gap:3.6rem;width:100%}.ss-info{text-align:center}.ss-chips{justify-content:center}.ss-desc,.ss-bar{margin-left:auto;margin-right:auto}}
 
-  /* ===== MOBILE ONLY: attractive skill detail card ===== */
+  /* ===== MOBILE ONLY: full-width skill detail card ===== */
   @media(max-width:899px){
-    .ss-info{position:relative;margin-top:.5rem;padding:1.6rem 1.15rem 1.5rem;border-radius:26px;text-align:center;
-      background:linear-gradient(160deg,color-mix(in srgb,var(--ss-brand,#e0af22) 14%,transparent),transparent 55%),var(--ss-paper);
-      border:1px solid color-mix(in srgb,var(--ss-brand,#e0af22) 38%,transparent);
-      box-shadow:0 18px 40px rgba(0,0,0,.14),0 0 0 1px rgba(255,255,255,.04) inset,0 8px 30px color-mix(in srgb,var(--ss-brand,#e0af22) 20%,transparent);
-      overflow:hidden}
-    .ss-info::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;
-      background:linear-gradient(90deg,transparent,var(--ss-brand,#e0af22),#ffdd58,transparent)}
-    .ss-info::after{content:"";position:absolute;width:190px;height:190px;right:-70px;top:-70px;border-radius:50%;pointer-events:none;
-      background:radial-gradient(circle,color-mix(in srgb,var(--ss-brand,#e0af22) 30%,transparent),transparent 70%)}
-    .ss-count{display:inline-block;padding:.3rem .85rem;border-radius:999px;font-size:.75rem;
-      background:color-mix(in srgb,var(--ss-brand,#e0af22) 16%,transparent);
-      border:1px solid color-mix(in srgb,var(--ss-brand,#e0af22) 40%,transparent)}
-    .ss-big{margin:.9rem 0 1.1rem;font-size:clamp(2rem,10vw,2.7rem)}
-    .ss-big em{display:inline-block;margin-bottom:.7rem;padding:.25rem .7rem;border-radius:8px;font-size:.3em;
-      background:linear-gradient(90deg,var(--ss-brand,#e0af22),#ffdd58);color:#111!important;-webkit-text-fill-color:#111}
-    .ss-desc{position:relative;z-index:1;margin:0 0 1rem;padding:.85rem 1rem;border-radius:16px;font-size:.98rem;line-height:1.7;text-align:left;
-      background:color-mix(in srgb,var(--e-fg,#111) 4%,transparent);
-      border-left:3px solid var(--ss-brand,#e0af22)}
-    .ss-use{border-left:0;border-right:3px solid var(--ss-brand,#e0af22);text-align:right;font-style:italic}
-    .ss-chips{gap:.5rem;margin-top:1.1rem}
-    .ss-chip{padding:.45rem .9rem;font-size:.85rem;font-weight:600;
-      background:linear-gradient(135deg,color-mix(in srgb,var(--ss-brand,#e0af22) 20%,transparent),color-mix(in srgb,var(--ss-brand,#e0af22) 6%,transparent));
-      border-color:color-mix(in srgb,var(--ss-brand,#e0af22) 45%,transparent);
-      box-shadow:0 3px 10px color-mix(in srgb,var(--ss-brand,#e0af22) 18%,transparent)}
-    .ss-bar{height:6px;margin-top:1.4rem;border-radius:6px}
-    .ss-bar i{background:linear-gradient(90deg,var(--ss-brand,#e0af22),#ffdd58);box-shadow:0 0 10px var(--ss-brand,#e0af22)}
+    .ss-info{
+      position:relative;
+      margin:.5rem -1.5rem 0;            /* cancel the section's 1.5rem side padding */
+      width:calc(100% + 3rem);
+      padding:1.4rem 1.5rem 1.6rem;
+      border-radius:22px 22px 0 0;       /* flat bottom, rounded top */
+      text-align:center;
+      background:
+        linear-gradient(160deg, color-mix(in srgb, var(--ss-brand,#e0af22) 16%, transparent), transparent 55%),
+        var(--ss-paper);
+      border:1px solid color-mix(in srgb, var(--ss-brand,#e0af22) 42%, transparent);
+      border-bottom:0;
+      box-shadow:
+        0 -8px 30px color-mix(in srgb, var(--ss-brand,#e0af22) 18%, transparent),
+        0 0 0 1px rgba(255,255,255,.04) inset;
+      overflow:hidden;
+    }
+    .ss-info::before{
+      content:"";
+      position:absolute; left:0; right:0; top:0; height:4px;
+      background:linear-gradient(90deg, transparent, var(--ss-brand,#e0af22), #ffdd58, transparent);
+    }
+    .ss-info::after{ display:none; }     /* remove circle that ate right-side space */
+
+    .ss-stack{width:min(62%,250px)}
+    .ss-stack-col{gap:3.2rem;width:100%}
+    .ss-chips{justify-content:center}
+
+    .ss-count{
+      display:inline-block;
+      padding:.28rem .8rem;
+      border-radius:999px;
+      font-size:.72rem;
+      background:color-mix(in srgb, var(--ss-brand,#e0af22) 18%, transparent);
+      border:1px solid color-mix(in srgb, var(--ss-brand,#e0af22) 45%, transparent);
+    }
+    .ss-big{
+      margin:.8rem 0 1rem;
+      font-size:clamp(1.9rem, 9vw, 2.5rem);
+      line-height:1.05;
+    }
+    .ss-big em{
+      display:block;             /* forces it to a new line */
+      width:fit-content;         /* keeps the pill only as wide as the text */
+      margin:0 auto .55rem;      /* centers the pill horizontally */
+      padding:.22rem .65rem;
+      border-radius:4px;         /* matches the crisp pill style in image 3 */
+      font-size:.3em;
+      background:linear-gradient(90deg, var(--ss-brand,#e0af22), #ffdd58);
+      color:#111 !important;
+      -webkit-text-fill-color:#111;
+    }
+
+    .ss-desc{
+      position:relative;
+      z-index:1;
+      margin:0 0 .9rem;
+      padding:.8rem 1rem;
+      border-radius:14px;
+      font-size:.95rem;
+      line-height:1.65;
+      text-align:left;
+      background:color-mix(in srgb, var(--e-fg,#111) 4%, transparent);
+      border-left:3px solid var(--ss-brand,#e0af22);
+    }
+    .ss-use{
+      margin-bottom:0;
+      /* removed border-left: 0; so it keeps the gold border from .ss-desc */
+      text-align:left;
+      font-style:italic;
+    }
+
+    .ss-chips{ gap:.45rem; margin-top:1rem; }
+    .ss-chip{
+      padding:.42rem .85rem;
+      font-size:.82rem;
+      font-weight:600;
+      background:linear-gradient(135deg,
+        color-mix(in srgb, var(--ss-brand,#e0af22) 22%, transparent),
+        color-mix(in srgb, var(--ss-brand,#e0af22) 6%, transparent));
+      border-color:color-mix(in srgb, var(--ss-brand,#e0af22) 48%, transparent);
+      box-shadow:0 3px 10px color-mix(in srgb, var(--ss-brand,#e0af22) 18%, transparent);
+    }
+
+    .ss-bar{ height:6px; margin:1.2rem 0 0; border-radius:6px; }
+    .ss-bar i{
+      background:linear-gradient(90deg, var(--ss-brand,#e0af22), #ffdd58);
+      box-shadow:0 0 10px var(--ss-brand,#e0af22);
+    }
   }
+
   @media(prefers-reduced-motion:reduce){.ss-title,.ss-chip,.ss-desc{animation:none}.ss-next{transition:none}.ss-card .ss-big-tile svg,.ss-face::before{animation:none!important}.ss-face::before{opacity:.6}}
   `;
   var st = document.createElement("style");
