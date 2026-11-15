@@ -1,14 +1,6 @@
-/* ==========================================================================
-   SKILLS ORBIT — builds the three orbiting rings in the About section.
-   Needs orbit-images.js (loaded first). Icon glyphs: Simple Icons (CC0),
-   Codex / Antigravity use simple stand-in glyphs.
-   Target element: <div id="skillsOrbit"></div>
-   ========================================================================== */
-(function () {
+!(function () {
   "use strict";
-
-  // key: [label, brandHex, dimInDark, evenodd, svgPath]
-  var ICONS = {
+  var c = {
     javascript: [
       "JavaScript (ES6+)",
       "F7DF1E",
@@ -200,28 +192,23 @@
       "M12 2 22.5 22h-4.6l-1.7-3.4H7.8L6.1 22H1.5zM9.7 15.2h4.6L12 10.4z",
     ],
   };
-
-  function icon(key) {
-    var d = ICONS[key];
+  function a(a) {
+    var l = c[a];
     return {
-      label: d[0],
-      dim: !!d[2],
+      label: l[0],
+      dim: !!l[2],
       html:
         '<svg viewBox="0 0 24 24" role="img" aria-hidden="true" style="fill:#' +
-        d[1] +
+        l[1] +
         '"' +
-        (d[3] ? ' fill-rule="evenodd"' : "") +
+        (l[3] ? ' fill-rule="evenodd"' : "") +
         '><path d="' +
-        d[4] +
+        l[4] +
         '"/></svg>',
     };
   }
-
-  // Rings are designed on a 560px canvas and scale with the stage.
-  var BASE = 560;
-  var RINGS = [
+  var l = [
     {
-      // outer — Frontend
       keys: [
         "javascript",
         "typescript",
@@ -242,7 +229,6 @@
       startAngle: -90,
     },
     {
-      // middle — Backend, Database, Tools
       keys: [
         "nodedotjs",
         "express",
@@ -265,7 +251,6 @@
       startAngle: -60,
     },
     {
-      // inner — AI tools
       keys: [
         "cursor",
         "codex",
@@ -282,79 +267,63 @@
       startAngle: -30,
     },
   ];
-
-  var CENTER =
-    '<div style="width:92px;height:92px;border-radius:50%;display:grid;place-items:center;' +
-    'border:1px solid var(--gold-line,rgba(230,185,60,.25));background:var(--e-card,rgba(230,185,60,.04))">' +
-    '<span style="font-weight:900;font-size:1.05rem;line-height:1;letter-spacing:.14em;text-transform:uppercase;' +
-    "background:var(--heading-grad,linear-gradient(#fff1a8,#e6b93c));-webkit-background-clip:text;background-clip:text;" +
-    '-webkit-text-fill-color:transparent;color:transparent">MERN</span></div>';
-
-  function centerFor(host) {
-    var k = Math.min(1, (host.clientWidth || BASE) / BASE);
-    var d = Math.round(92 * k);
-    return CENTER.replace(
-      "width:92px;height:92px",
-      "width:" + d + "px;height:" + d + "px",
-    ).replace(
-      "font-size:1.05rem",
-      "font-size:" + Math.max(0.6, 1.05 * k).toFixed(2) + "rem",
-    );
-  }
-
-  function init() {
-    var host = document.getElementById("skillsOrbit");
-    if (!host || !window.OrbitImages || host.dataset.ready) return;
-    host.dataset.ready = "1";
-    host.classList.add("orbit-stage"); // gives the empty host its size
-    build(host); // rotation starts right away, no scroll gate
-    // rotate / resize across the phone breakpoint -> switch engine
-    var mq = window.matchMedia("(max-width: 767px)");
-    var onChange = function () {
-      build(host);
-    };
-    if (mq.addEventListener) mq.addEventListener("change", onChange);
-    else mq.addListener(onChange);
-  }
-
-  var handles = [];
-  function build(host) {
-    handles.forEach(function (h) {
-      h.destroy();
-    });
-    handles = [];
-    host.innerHTML = "";
-    host.setAttribute("role", "group");
-    host.setAttribute("aria-label", "Skills I work with");
-
-    RINGS.forEach(function (ring, idx) {
-      var layer = document.createElement("div");
-      host.appendChild(layer);
-      handles.push(
-        window.OrbitImages(layer, {
-          items: ring.keys.map(icon),
-          shape: "circle",
-          radius: ring.radius,
-          baseWidth: BASE,
-          itemSize: ring.itemSize,
-          minItemSize: ring.min,
-          duration: ring.duration,
-          direction: ring.direction,
-          startAngle: ring.startAngle,
-          showPath: true,
-          pathDash: 5,
-          hoverScale: 1.12,
-          hoverSpeed: 1,
-          shadow: 0.3,
-          draggable: true,
-          clickToFront: true,
-          centerContent: idx === RINGS.length - 1 ? centerFor(host) : null,
-        }),
+  function t(c) {
+    var a = Math.min(1, (c.clientWidth || 560) / 560),
+      l = Math.round(92 * a);
+    return '<div style="width:92px;height:92px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--gold-line,rgba(230,185,60,.25));background:var(--e-card,rgba(230,185,60,.04))"><span style="font-weight:900;font-size:1.05rem;line-height:1;letter-spacing:.14em;text-transform:uppercase;background:var(--heading-grad,linear-gradient(#fff1a8,#e6b93c));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent">MERN</span></div>'
+      .replace("width:92px;height:92px", "width:" + l + "px;height:" + l + "px")
+      .replace(
+        "font-size:1.05rem",
+        "font-size:" + Math.max(0.6, 1.05 * a).toFixed(2) + "rem",
       );
-    });
   }
-
-  if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", init);
-  else init();
+  function e() {
+    var c = document.getElementById("skillsOrbit");
+    if (c && window.OrbitImages && !c.dataset.ready) {
+      ((c.dataset.ready = "1"), c.classList.add("orbit-stage"), r(c));
+      var a = window.matchMedia("(max-width: 767px)"),
+        l = function () {
+          r(c);
+        };
+      a.addEventListener ? a.addEventListener("change", l) : a.addListener(l);
+    }
+  }
+  var i = [];
+  function r(c) {
+    (i.forEach(function (c) {
+      c.destroy();
+    }),
+      (i = []),
+      (c.innerHTML = ""),
+      c.setAttribute("role", "group"),
+      c.setAttribute("aria-label", "Skills I work with"),
+      l.forEach(function (e, r) {
+        var s = document.createElement("div");
+        (c.appendChild(s),
+          i.push(
+            window.OrbitImages(s, {
+              items: e.keys.map(a),
+              shape: "circle",
+              radius: e.radius,
+              baseWidth: 560,
+              itemSize: e.itemSize,
+              minItemSize: e.min,
+              duration: e.duration,
+              direction: e.direction,
+              startAngle: e.startAngle,
+              showPath: !0,
+              pathDash: 5,
+              hoverScale: 1.12,
+              hoverSpeed: 1,
+              shadow: 0.3,
+              draggable: !0,
+              clickToFront: !0,
+              centerContent: r === l.length - 1 ? t(c) : null,
+            }),
+          ));
+      }));
+  }
+  "loading" === document.readyState
+    ? document.addEventListener("DOMContentLoaded", e)
+    : e();
 })();
