@@ -73,15 +73,24 @@
       "html .e-card.cert-card img{position:absolute;inset:0;display:block;width:100%;height:100%;margin:0;padding:0;border:0;object-fit:cover;object-position:center;background:none;transition:transform .5s ease}" +
       ".e-card.cert-card iframe{position:absolute;inset:0;display:block;width:100%;height:100%;border:0;pointer-events:none;background:#fff}" +
       ".e-card.cert-card:hover img{transform:scale(1.04)}" +
-      ".e-card.cert-card.cert-missing{display:grid;place-items:center;padding:1rem!important;text-align:center;font-size:.85rem;line-height:1.5;opacity:.75}";
+      ".e-card.cert-card.cert-missing{display:grid;place-items:center;padding:1rem!important;text-align:center;font-size:.85rem;line-height:1.5;opacity:.75}" +
+      /* Mobile fix: stretch the certificates section edge-to-edge */
+      "@media(max-width:768px){" +
+      "#highlights.extra{padding-left:0!important;padding-right:0!important}" +
+      "#highlights .extra-inner{padding-left:1.25rem!important;padding-right:1.25rem!important}" +
+      "#highlights .e-grid{padding-left:1.25rem!important;padding-right:1.25rem!important;gap:1.25rem!important}" +
+      "#highlights .extra-title{font-size:clamp(1.8rem,8vw,2.5rem)!important;line-height:1.1}" +
+      "}";
     document.head.appendChild(cs);
 
     var proj = $("#project");
     var cards = "";
     for (var n = 1; n <= CERT_COUNT; n++)
       cards +=
-        '<div class="e-card cert-card"><img src="certificate' + n +
-        '.webp" alt="Certificate ' + n +
+        '<div class="e-card cert-card"><img src="certificate' +
+        n +
+        '.webp" alt="Certificate ' +
+        n +
         '" width="1287" height="910" loading="lazy" decoding="async" draggable="false" /></div>';
     var sec = document.createElement("section");
     sec.id = "highlights";
@@ -89,7 +98,9 @@
     sec.innerHTML =
       '<div class="extra-inner">' +
       '<p class="extra-eyebrow">Achievements</p><h2 class="extra-title">My Certificates</h2>' +
-      '<div class="e-grid">' + cards + "</div></div>";
+      '<div class="e-grid">' +
+      cards +
+      "</div></div>";
     proj.parentNode.insertBefore(sec, proj);
 
     // 4. Reveal on scroll + count-up
