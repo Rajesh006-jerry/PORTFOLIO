@@ -14,7 +14,7 @@
       name="description"
       content="Rajesh S — MERN Stack Developer portfolio: projects, skills and contact."
     />
-    <link rel="stylesheet" href="loader.css" />
+    <link rel="stylesheet" href="loader.css?v=3" />
     <noscript
       ><style>
         .hero-loadbar {
@@ -22,23 +22,47 @@
         }
       </style></noscript
     >
-    <link rel="stylesheet" href="enhancements.css" />
-    <script src="enhancements.js" defer="defer"></script>
-    <script src="glow-cursor.js" defer="defer"></script>
-    <script src="orbit-images.js" defer="defer"></script>
-    <script src="orbit-skills.js" defer="defer"></script>
-    <script src="image-loop.js" defer="defer"></script>
+    <link rel="stylesheet" href="enhancements.css?v=3" />
+    <script src="enhancements.js?v=3" defer="defer"></script>
+    <script src="glow-cursor.js?v=3" defer="defer"></script>
+    <script src="orbit-images.js?v=3" defer="defer"></script>
+    <script src="orbit-skills.js?v=3" defer="defer"></script>
+    <script src="image-loop.js?v=3" defer="defer"></script>
     <script>
-      if (window.matchMedia("(max-width: 767px)").matches) {
-        var s = document.createElement("script");
-        s.src = "spark.js";
-        s.defer = !0;
-        document.head.appendChild(s);
-      }
+      (function () {
+        var mq = window.matchMedia("(max-width: 767px) and (pointer: coarse)"),
+          loaded = !1;
+        function set(d) {
+          window.ClickSpark && window.ClickSpark.update({ disabled: d });
+        }
+        function sync() {
+          if (mq.matches) {
+            if (!loaded) {
+              loaded = !0;
+              var s = document.createElement("script");
+              s.src = "spark.js?v=3";
+              s.defer = !0;
+              s.onload = function () {
+                set(!1);
+              };
+              document.head.appendChild(s);
+            } else set(!1);
+          } else set(!0);
+        }
+        sync();
+        mq.addEventListener
+          ? mq.addEventListener("change", sync)
+          : mq.addListener(sync);
+      })();
     </script>
     <style>
+      /* ==========================================================================
+   RAJESH S — PORTFOLIO  |  consolidated styles
+   ========================================================================== */ /* ==========================================================================
+   TYPOGRAPHY — one self-hosted bold-italic serif everywhere (no device fonts)
+   ========================================================================== */
       @font-face {
-        font-family: PortfolioSerif;
+        font-family: "PortfolioSerif";
         font-style: italic;
         font-weight: 700;
         font-display: block;
@@ -46,7 +70,7 @@
           format("woff");
       }
       @font-face {
-        font-family: PortfolioSymbols;
+        font-family: "PortfolioSymbols";
         font-style: italic;
         font-weight: 700;
         font-display: block;
@@ -55,7 +79,7 @@
         unicode-range: U+2190-2193, U+2197, U+21BB;
       }
       @font-face {
-        font-family: PortfolioSymbols;
+        font-family: "PortfolioSymbols";
         font-style: italic;
         font-weight: 700;
         font-display: block;
@@ -69,8 +93,8 @@
           serif;
       }
       *,
-      ::after,
-      ::before,
+      *::before,
+      *::after,
       ::placeholder {
         font-family: var(--font-serif) !important;
         font-style: italic !important;
@@ -82,7 +106,7 @@
         text-size-adjust: 100%;
         font-kerning: normal;
         text-rendering: optimizeLegibility;
-      }
+      } /* ===== 1. TOKENS ===== */
       :root {
         color-scheme: dark;
         --a-rgb: 224, 175, 34;
@@ -245,7 +269,7 @@
         --gc-line: rgba(181, 128, 16, 0.35);
         --gc-shadow:
           0 30px 70px rgba(60, 70, 90, 0.28), 0 0 50px rgba(224, 175, 34, 0.12);
-      }
+      } /* ===== 2. RESET & BASE ===== */
       * {
         margin: 0;
         padding: 0;
@@ -283,7 +307,7 @@
         font: inherit;
         cursor: pointer;
         border: none;
-        background: 0 0;
+        background: none;
         color: inherit;
       }
       img {
@@ -314,24 +338,24 @@
       .main-content.visible {
         opacity: 1;
         transform: none;
-      }
-      .about-intro-desktop,
-      .about-intro-mobile,
-      .contact-heading,
+      } /* Shared gradient-text headings */
       .hero-title,
+      .about-intro-mobile,
+      .about-intro-desktop,
+      .services-title,
       .projects-title,
-      .services-title {
+      .contact-heading {
         background-image: var(--heading-grad);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
         filter: var(--heading-filter);
-      }
+      } /* Section top borders */
       .extra,
-      .projects,
-      .services {
+      .services,
+      .projects {
         border-top: 1px solid var(--gold-line);
-      }
+      } /* ===== 3. HERO ===== */
       .hero {
         position: relative;
         min-height: 100vh;
@@ -429,8 +453,8 @@
         opacity: 0;
         transform: translateY(24px);
       }
-      .hero-contact-btn,
-      .hero-icon-btn {
+      .hero-icon-btn,
+      .hero-contact-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -455,20 +479,20 @@
         padding: 0 1.6rem;
         border-radius: 999px;
       }
-      .hero-buttons:hover .hero-contact-btn,
-      .hero-buttons:hover .hero-icon-btn,
+      .hero-icon-btn:hover,
       .hero-contact-btn:hover,
-      .hero-icon-btn:hover {
+      .hero-buttons:hover .hero-icon-btn,
+      .hero-buttons:hover .hero-contact-btn {
         border-color: var(--e-accent);
       }
-      .hero-contact-btn:hover,
-      .hero-icon-btn:hover {
+      .hero-icon-btn:hover,
+      .hero-contact-btn:hover {
         background: var(--e-accent);
         transform: translateY(-2px);
         box-shadow: 0 10px 24px rgba(var(--a-rgb), 0.35);
       }
-      .hero-contact-btn:focus-visible,
-      .hero-icon-btn:focus-visible {
+      .hero-icon-btn:focus-visible,
+      .hero-contact-btn:focus-visible {
         outline: 2px solid var(--e-accent);
         outline-offset: 3px;
       }
@@ -497,8 +521,8 @@
       .hero-contact-btn:hover span {
         color: #1a1405;
       }
-      html[data-theme="light"] .hero-contact-btn:hover span,
-      html[data-theme="light"] .hero-icon-btn:hover .hero-icon-arrow {
+      html[data-theme="light"] .hero-icon-btn:hover .hero-icon-arrow,
+      html[data-theme="light"] .hero-contact-btn:hover span {
         color: #fff;
       }
       .hero-image-wrap {
@@ -620,7 +644,7 @@
           font-size: 2.25rem;
           padding-left: 0.85rem;
         }
-      }
+      } /* ===== 4. NAVBAR ===== */
       .navbar {
         position: fixed;
         top: 0;
@@ -691,7 +715,7 @@
           #5227ff
         );
         background-size: 300% 100%;
-        background-position: 0 50%;
+        background-position: 0% 50%;
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -739,16 +763,16 @@
         background: var(--e-accent);
         transition: width 0.25s ease;
       }
-      .navbar-links a.active,
-      .navbar-links a:hover {
+      .navbar-links a:hover,
+      .navbar-links a.active {
         color: var(--e-fg);
       }
-      .navbar-links a.active::after,
-      .navbar-links a:hover::after {
+      .navbar-links a:hover::after,
+      .navbar-links a.active::after {
         width: 100%;
       }
-      .mobile-menu-links .mobile-resume,
-      .navbar-links .navbar-resume {
+      .navbar-links .navbar-resume,
+      .mobile-menu-links .mobile-resume {
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -778,8 +802,8 @@
         padding: 12px 24px;
         font-size: 1rem;
       }
-      .mobile-menu-links .mobile-resume:hover,
-      .navbar-links .navbar-resume:hover {
+      .navbar-links .navbar-resume:hover,
+      .mobile-menu-links .mobile-resume:hover {
         background: var(--e-accent);
         color: var(--on-accent);
       }
@@ -896,8 +920,8 @@
         transform: none;
       }
       @media (min-width: 768px) {
-        .mobile-menu-overlay,
-        .navbar-mobile-icon {
+        .navbar-mobile-icon,
+        .mobile-menu-overlay {
           display: none;
         }
       }
@@ -932,7 +956,7 @@
         opacity: 1;
         pointer-events: auto;
         transform: none;
-      }
+      } /* ===== 5. ABOUT ===== */
       .about {
         position: relative;
         min-height: 100vh;
@@ -957,8 +981,8 @@
         max-width: 80rem;
         margin: 0 auto;
       }
-      .about-intro-desktop,
-      .about-intro-mobile {
+      .about-intro-mobile,
+      .about-intro-desktop {
         font-weight: 900;
         letter-spacing: -0.04em;
         line-height: 0.9;
@@ -969,8 +993,8 @@
           opacity 1s ease,
           transform 1s ease;
       }
-      .about-intro-desktop.in-view,
-      .about-intro-mobile.in-view {
+      .about-intro-mobile.in-view,
+      .about-intro-desktop.in-view {
         opacity: 1;
         transform: none;
       }
@@ -1111,20 +1135,20 @@
       }
       .about-paragraph .word.name.lit {
         color: transparent;
-      }
+      } /* ===== MARQUEE (UPDATED FOR FULL WIDTH) ===== */
       .marquee-wrap {
         display: flex;
         flex-direction: column;
         padding: 1rem 0;
         background: var(--marquee-bg);
-        border-top: 1px solid var(--gold-line);
+        border-top: 1px solid var(--gold-line); /* Fix: Span full viewport width to prevent corner hiding */
         width: 100vw;
         position: relative;
         left: 50%;
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        margin-top: auto;
+        margin-top: auto; /* Keeps it pushed to the bottom of the about section */
         margin-bottom: 0;
         overflow: hidden;
       }
@@ -1179,7 +1203,7 @@
         .marquee-item span:last-child {
           padding: 0 1rem;
         }
-      }
+      } /* ========================================= */ /* ===== 6. JOURNEY (REWORKED FOR ZIGZAG ROUTE) ===== */
       .journey {
         position: relative;
         padding: 4rem 1.5rem 4rem;
@@ -1210,7 +1234,7 @@
         background-clip: text;
         color: transparent;
         filter: var(--heading-filter);
-      }
+      } /* Shared section heading (same look as "The Story So Far") */
       .sec-head {
         margin-bottom: 2.5rem;
         padding-inline: 1.5rem;
@@ -1226,7 +1250,7 @@
         font-family: Georgia, serif;
         font-style: italic;
         opacity: 0.8;
-      }
+      } /* The Timeline List */
       .jr-list {
         position: relative;
         max-width: 1600px;
@@ -1264,7 +1288,7 @@
         margin: -40px 0 0 -40px;
         border-radius: 0;
         padding: 0;
-        background: 0 0;
+        background: transparent;
         box-shadow: none;
         will-change: transform;
         pointer-events: none;
@@ -1275,7 +1299,7 @@
         border-radius: 0;
         object-fit: contain;
         border: none;
-      }
+      } /* Individual Items */
       .jr-item {
         position: relative;
         z-index: 1;
@@ -1290,7 +1314,7 @@
       }
       .jr-item:last-child {
         margin-bottom: 0;
-      }
+      } /* Bike Image Container */
       .bike-image-container {
         grid-area: photo;
         justify-self: end;
@@ -1299,14 +1323,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: 0 0;
+        background: transparent;
         border: none;
         box-shadow: none;
         min-height: 1px;
       }
       .flip .bike-image-container {
         justify-self: start;
-      }
+      } /* Dot */
       .jr-dot {
         grid-area: dot;
         justify-self: center;
@@ -1317,7 +1341,7 @@
         border: 5px solid var(--e-bg);
         box-shadow: 0 0 0 6px rgba(224, 175, 34, 0.2);
         z-index: 2;
-      }
+      } /* Card */
       .jr-card {
         grid-area: card;
         max-width: 450px;
@@ -1367,7 +1391,7 @@
         font-size: 0.95rem;
         line-height: 1.6;
         margin-top: 1rem;
-      }
+      } /* Mobile Journey */
       @media (max-width: 767px) {
         .jr-item,
         .jr-item.flip {
@@ -1386,13 +1410,13 @@
           width: 100%;
           min-height: 0;
         }
-        .flip .jr-card,
-        .jr-card {
+        .jr-card,
+        .flip .jr-card {
           justify-self: stretch;
           max-width: 100%;
           padding: 1.5rem;
         }
-      }
+      } /* ===== 7. PROJECTS ===== */
       .projects {
         padding: 5rem 1.5rem 7rem;
         background: var(--sec-b);
@@ -1411,8 +1435,8 @@
         gap: 3rem;
         margin-bottom: 6rem;
       }
-      .projects-desc-col,
-      .projects-title-col {
+      .projects-title-col,
+      .projects-desc-col {
         width: 100%;
       }
       .projects-title {
@@ -1425,8 +1449,8 @@
         letter-spacing: -0.05em;
         text-transform: uppercase;
       }
-      .project-title .accent,
-      .projects-title-italic {
+      .projects-title-italic,
+      .project-title .accent {
         color: var(--accent-soft);
         font-family: Georgia, serif;
         font-weight: 300;
@@ -1480,7 +1504,7 @@
         box-shadow: 0 10px 30px rgba(var(--a-rgb), 0.2);
       }
       .btn-outline {
-        background: 0 0;
+        background: transparent;
         border: 1px solid var(--outline-border);
         color: var(--outline-ink);
       }
@@ -1682,7 +1706,7 @@
           padding: 0.65rem 1.1rem;
           font-size: 0.8rem;
         }
-      }
+      } /* ===== 8. CONTACT ===== */
       .contact {
         position: relative;
         min-height: 100vh;
@@ -1813,7 +1837,7 @@
         align-items: center;
         justify-content: center;
         border-radius: 999px;
-        background: 0 0;
+        background: transparent;
         border: 1.5px solid var(--e-accent);
         color: var(--e-accent);
         box-shadow: 0 0 14px rgba(var(--a-rgb), 0.18);
@@ -1929,7 +1953,7 @@
       }
       .contact-form-field input:focus,
       .contact-form-field textarea:focus {
-        outline: 0;
+        outline: none;
         border-color: #e0af22;
         box-shadow: 0 0 0 3px rgba(var(--a-rgb), 0.3);
       }
@@ -1974,7 +1998,7 @@
       }
       .form-status.ok {
         color: #34d399;
-      }
+      } /* ===== 9. FOOTER CARD (classic) ===== */
       .footer-card-section {
         position: relative;
         min-height: 70vh;
@@ -1998,7 +2022,7 @@
         transform: translate(-50%, -50%);
         background: radial-gradient(
           circle,
-          rgba(224, 175, 34, 0.06) 0,
+          rgba(224, 175, 34, 0.06) 0%,
           rgba(224, 175, 34, 0) 70%
         );
         pointer-events: none;
@@ -2024,7 +2048,7 @@
         border-radius: inherit;
         background: radial-gradient(
           circle 175px at calc(100% - 25px) 25px,
-          rgba(224, 175, 34, 0.08) 0,
+          rgba(224, 175, 34, 0.08) 0%,
           rgba(224, 175, 34, 0) 70%
         );
         pointer-events: none;
@@ -2217,7 +2241,7 @@
           padding: 14px 20px;
           justify-content: center;
         }
-      }
+      } /* ===== 10. GOLD BUSINESS CARD (.gc) ===== */
       .gc-wrap {
         position: relative;
         z-index: 2;
@@ -2559,7 +2583,7 @@
           padding: 0.7rem 1.2rem;
           font-size: 0.7rem;
         }
-      }
+      } /* ===== 11. EXTRA SECTIONS (stats / cards, injected by enhancements.js) ===== */
       .extra {
         padding: 5rem 1.5rem;
         background: var(--sec-a);
@@ -2606,8 +2630,8 @@
           grid-template-columns: repeat(4, 1fr);
         }
       }
-      .e-card,
-      .stat {
+      .stat,
+      .e-card {
         position: relative;
         overflow: hidden;
         padding: 1.5rem;
@@ -2625,8 +2649,8 @@
           rgba(255, 255, 255, 0.03)
         );
       }
-      .e-card:hover,
-      .stat:hover {
+      .stat:hover,
+      .e-card:hover {
         transform: translateY(-4px);
         border-color: var(--e-accent);
       }
@@ -2701,11 +2725,11 @@
       .e-reveal.in {
         opacity: 1;
         transform: none;
-      }
+      } /* ===== 12. LIGHT THEME: silver surfaces (shared by all cards) ===== */
       html[data-theme="light"] .about-card,
+      html[data-theme="light"] .stat,
       html[data-theme="light"] .e-card,
-      html[data-theme="light"] .project-image-col,
-      html[data-theme="light"] .stat {
+      html[data-theme="light"] .project-image-col {
         background: linear-gradient(145deg, #fff, #dfe2e7);
         border-color: rgba(224, 175, 34, 0.6);
         box-shadow: 0 14px 36px rgba(60, 70, 90, 0.12);
@@ -2723,7 +2747,7 @@
       html[data-theme="light"] .jr-card {
         background: #fff;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-      }
+      } /* ===== 13. REDUCED MOTION ===== */
       @media (prefers-reduced-motion: reduce) {
         * {
           animation: none !important;
@@ -2736,7 +2760,7 @@
         .bike-image-container img {
           animation: none !important;
         }
-      }
+      } /* Multicolour static border line (same palette as the multicolour star) */
       .sb.sb-multi {
         border-color: transparent !important;
       }
@@ -2768,16 +2792,19 @@
         mask:
           linear-gradient(#000 0 0) content-box exclude,
           linear-gradient(#000 0 0);
-      }
+      } /* Resume / CV button: the nav-link underline (::after, 1px line) was being
+         turned into a second multicolour line on hover. Hide it - the animated
+         star border (canvas) is the only border this button needs. */
       .navbar-links .navbar-resume.sb.sb-multi::after,
-      .navbar-links .navbar-resume.sb.sb-multi:focus-visible::after,
-      .navbar-links .navbar-resume.sb.sb-multi:hover::after {
+      .navbar-links .navbar-resume.sb.sb-multi:hover::after,
+      .navbar-links .navbar-resume.sb.sb-multi:focus-visible::after {
         content: none !important;
         display: none !important;
-      }
+      } /* Toolkit skill chips, LIGHT theme only: no golden star border -
+         only the multicolour star border (drawn by image-loop.js CSS). */
       html[data-theme="light"] .ss-chip > .sb-light {
         display: none !important;
-      }
+      } /* ===== STAR BORDER (animated light running round every button) ===== */
       :root {
         --sb-color: #e0af22;
       }
@@ -2794,7 +2821,7 @@
       .contact-submit,
       .gc-btn.fill {
         background-size: 300% 300%;
-        background-position: 0 50%;
+        background-position: 0% 50%;
         transition:
           background-position 0.9s cubic-bezier(0.4, 0, 0.2, 1),
           transform 0.25s ease,
@@ -2802,17 +2829,17 @@
           filter 0.35s ease,
           color 0.25s ease;
       }
-      .btn-lime:focus-visible,
       .btn-lime:hover,
-      .contact-submit:focus-visible,
+      .btn-lime:focus-visible,
       .contact-submit:hover,
-      .gc-btn.fill:focus-visible,
-      .gc-btn.fill:hover {
+      .contact-submit:focus-visible,
+      .gc-btn.fill:hover,
+      .gc-btn.fill:focus-visible {
         background-position: 100% 50%;
       }
       .to-top {
         background-size: 300% 300%;
-        background-position: 0 50%;
+        background-position: 0% 50%;
         transition:
           opacity 0.3s,
           transform 0.3s,
@@ -2826,9 +2853,9 @@
         .contact-submit,
         .gc-btn.fill,
         .to-top {
-          transition-duration: 10ms;
+          transition-duration: 0.01s;
         }
-      }
+      } /* Back-to-top: same look as the hero arrow button */
       button.to-top {
         display: inline-flex;
         align-items: center;
@@ -2856,11 +2883,11 @@
       }
       button.to-top:hover svg {
         transform: translateY(-2px);
-      }
+      } /* Double line under every section heading */
       .about-intro-desktop,
       .about-intro-mobile,
-      .contact-heading,
-      .ss-title {
+      .ss-title,
+      .contact-heading {
         width: fit-content;
         max-width: 100%;
       }
@@ -2871,9 +2898,9 @@
       }
       .about-intro-desktop::after,
       .about-intro-mobile::after,
-      .contact-heading::after,
       .journey-title::after,
-      .ss-title::after {
+      .ss-title::after,
+      .contact-heading::after {
         content: "";
         display: block;
         box-sizing: border-box;
@@ -2885,29 +2912,29 @@
       }
       @keyframes gold-flow {
         0% {
-          background-position: 0 50%;
+          background-position: 0% 50%;
         }
         100% {
           background-position: 100% 50%;
         }
       }
-      .about-intro-desktop,
+      .hero-title,
       .about-intro-mobile,
+      .about-intro-desktop,
+      .services-title,
+      .projects-title,
       .contact-heading,
       .extra-title,
       .gc-name,
-      .hero-title,
-      .journey-title,
-      .projects-title,
-      .services-title {
+      .journey-title {
         background-size: 300% 300%;
         animation: gold-flow 7s ease-in-out infinite alternate;
       }
       .btn-lime,
       .contact-submit,
       .gc-btn.fill,
-      .scroll-progress,
-      .to-top {
+      .to-top,
+      .scroll-progress {
         background-size: 300% 300%;
         animation: gold-flow 5s ease-in-out infinite alternate;
       }
@@ -2918,20 +2945,20 @@
         animation-duration: 1.6s;
       }
       @media (prefers-reduced-motion: reduce) {
-        .about-intro-desktop,
-        .about-intro-mobile,
-        .btn-lime,
-        .contact-heading,
-        .contact-submit,
-        .extra-title,
-        .gc-btn.fill,
-        .gc-name,
         .hero-title,
-        .journey-title,
-        .projects-title,
-        .scroll-progress,
+        .about-intro-mobile,
+        .about-intro-desktop,
         .services-title,
-        .to-top {
+        .projects-title,
+        .contact-heading,
+        .extra-title,
+        .gc-name,
+        .journey-title,
+        .btn-lime,
+        .contact-submit,
+        .gc-btn.fill,
+        .to-top,
+        .scroll-progress {
           animation: none;
         }
       }
@@ -2960,7 +2987,7 @@
       }
       @keyframes gt-flow {
         0% {
-          background-position: 0 50%;
+          background-position: 0% 50%;
         }
         100% {
           background-position: 400% 50%;
@@ -3011,7 +3038,7 @@
       .hero-title {
         background-image: linear-gradient(
           110deg,
-          #e0af22 0,
+          #e0af22 0%,
           #e0af22 30%,
           #ffdd58 42%,
           #ffdc58 50%,
@@ -3026,7 +3053,7 @@
       html[data-theme="light"] .hero-title {
         background-image: linear-gradient(
           110deg,
-          #e0af22 0,
+          #e0af22 0%,
           #e0af22 30%,
           #ffdd58 42%,
           #ffdc58 50%,
@@ -3043,16 +3070,16 @@
           animation: none;
         }
       }
-      .about-intro-desktop,
       .about-intro-mobile,
+      .about-intro-desktop,
+      .services-title,
+      .projects-title,
       .contact-heading,
       .extra-title,
-      .gc-name,
-      .projects-title,
-      .services-title {
+      .gc-name {
         background-image: linear-gradient(
           110deg,
-          #e0af22 0,
+          #e0af22 0%,
           #e0af22 30%,
           #ffdd58 42%,
           #ffdc58 50%,
@@ -3064,13 +3091,13 @@
         animation: gold-glare 3.2s linear infinite;
       }
       @media (prefers-reduced-motion: reduce) {
-        .about-intro-desktop,
         .about-intro-mobile,
+        .about-intro-desktop,
+        .services-title,
+        .projects-title,
         .contact-heading,
         .extra-title,
-        .gc-name,
-        .projects-title,
-        .services-title {
+        .gc-name {
           animation: none;
         }
       }
@@ -3105,7 +3132,7 @@
       .hero-subtitle-bold {
         background-image: linear-gradient(
           110deg,
-          #e0af22 0,
+          #e0af22 0%,
           #e0af22 30%,
           #ffdd58 42%,
           #ffdc58 50%,
@@ -3127,7 +3154,7 @@
       .project-title {
         background-image: linear-gradient(
           110deg,
-          #e0af22 0,
+          #e0af22 0%,
           #e0af22 30%,
           #ffdd58 42%,
           #ffdc58 50%,
@@ -3148,7 +3175,9 @@
         .project-title {
           animation: none;
         }
-      }
+      } /* ==========================================================================
+   LOGOLOOP — moving card loop for #highlights .e-grid
+   ========================================================================== */
       .logoloop {
         --logoloop-gap: 22px;
         --logoloop-logoHeight: 28px;
@@ -3210,7 +3239,7 @@
         background: linear-gradient(145deg, #fff, #dfe2e7);
         border-color: rgba(224, 175, 34, 0.6);
         box-shadow: 0 14px 36px rgba(60, 70, 90, 0.12);
-      }
+      } /* Mounted state: hide grid, show loop */
       .e-grid.logoloop-mounted {
         display: none !important;
       }
@@ -3221,11 +3250,13 @@
         .logoloop__item > .e-card {
           width: 16.5rem;
         }
-      }
+      } /* ==========================================================================
+         14. FIX: Make the LogoLoop (What I Bring) section full-width edge-to-edge
+         ========================================================================== */ /* 1. Remove the container restriction for the loop */
       .extra-inner {
         max-width: none !important;
         padding: 0 !important;
-      }
+      } /* 2. Keep the titles and stats aligned with the rest of the site */
       .extra-eyebrow,
       .extra-title,
       .stats {
@@ -3242,7 +3273,7 @@
           padding-left: 4rem;
           padding-right: 4rem;
         }
-      }
+      } /* 3. Break the loop out to span 100vw (prevents corner hiding) */
       #highlights .logoloop {
         width: 100vw;
         position: relative;
@@ -3251,13 +3282,15 @@
         margin-left: -50vw;
         margin-right: -50vw;
         overflow: hidden;
-      }
+      } /* 4. Remove mobile padding on the loop wrapper */
       @media (max-width: 767px) {
         #highlights .logoloop {
           padding-left: 0 !important;
           padding-right: 0 !important;
         }
-      }
+      } /* ==========================================================================
+   THE STORY SO FAR — premium card decoration
+   ========================================================================== */ /* ===== Card base: layered gold border + cursor spotlight ===== */
       .jr-card {
         --mx: 50%;
         --my: 0%;
@@ -3345,7 +3378,7 @@
         box-shadow:
           0 34px 56px -22px rgba(40, 50, 70, 0.28),
           0 0 36px -10px rgba(var(--a-rgb), 0.4);
-      }
+      } /* ===== Top gold accent bar (draws itself on reveal) ===== */
       .jr-card::before {
         content: "";
         position: absolute;
@@ -3360,7 +3393,7 @@
       }
       .jr-item.in .jr-card::before {
         transform: scaleX(1);
-      }
+      } /* ===== Giant ghost number watermark ===== */
       .jr-card::after {
         content: attr(data-n);
         position: absolute;
@@ -3379,7 +3412,7 @@
       .jr-card:hover::after {
         opacity: 0.14;
         transform: translateY(-6px);
-      }
+      } /* ===== Diagonal shine sweep ===== */
       .jr-shine {
         position: absolute;
         inset: 0;
@@ -3395,7 +3428,7 @@
       }
       .jr-card:hover .jr-shine {
         transform: translateX(120%);
-      }
+      } /* ===== Card header row (chip + year) ===== */
       .jr-top {
         position: relative;
         z-index: 1;
@@ -3404,7 +3437,7 @@
         justify-content: space-between;
         gap: 1rem;
         margin-bottom: 1.4rem;
-      }
+      } /* ===== Tag chip ===== */
       .jr-chip {
         display: inline-flex;
         align-items: center;
@@ -3431,10 +3464,10 @@
       .jr-chip svg {
         width: 14px;
         height: 14px;
-      }
+      } /* ===== Year ===== */
       .jr-year {
         font-size: 1.15rem;
-      }
+      } /* ===== Card content raised above decoration ===== */
       .jr-card h3,
       .jr-card p {
         position: relative;
@@ -3443,7 +3476,7 @@
       .jr-card h3 {
         margin-top: 0;
         font-size: 1.6rem;
-      }
+      } /* ===== Organization line with gold dash rule ===== */
       .jr-org {
         position: relative;
         z-index: 1;
@@ -3460,14 +3493,14 @@
         height: 2px;
         border-radius: 2px;
         background: var(--e-accent);
-      }
+      } /* ===== Card paragraph ===== */
       .jr-card p {
         margin-top: 1.1rem;
         line-height: 1.7;
-      }
+      } /* ===== Mobile tuning ===== */
       @media (max-width: 767px) {
-        .flip .jr-card,
-        .jr-card {
+        .jr-card,
+        .flip .jr-card {
           padding: 1.7rem 1.5rem;
           border-radius: 22px;
           transform: translateY(30px);
@@ -3478,7 +3511,7 @@
         .jr-card h3 {
           font-size: 1.3rem;
         }
-      }
+      } /* ===== Reduced motion ===== */
       @media (prefers-reduced-motion: reduce) {
         .jr-card {
           opacity: 1 !important;
@@ -3489,6 +3522,62 @@
         }
         .jr-shine {
           display: none;
+        }
+      } /* ==========================================================================
+         BACK-TO-TOP + MOBILE POLISH + MOBILE PERFORMANCE
+         ========================================================================== */ /* The star-border script adds ".sb { position: relative }" to the button,
+         which was overriding "position: fixed" and dropping it at the page end. */
+      button.to-top,
+      button.to-top.sb {
+        position: fixed;
+      }
+      @media (max-width: 767px) {
+        button.to-top,
+        button.to-top.sb {
+          position: fixed;
+          top: auto;
+          left: auto;
+          right: max(1rem, env(safe-area-inset-right, 0px));
+          bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+        }
+        .contact-heading {
+          margin-left: auto;
+          margin-right: auto;
+          text-align: center;
+        }
+      } /* phones / touch: remove the work that makes swiping stutter */
+      @media (max-width: 767px), (pointer: coarse) {
+        /* render all sections up front instead of building them as you swipe */
+        #project,
+        #highlights,
+        #contact,
+        .projects-list {
+          content-visibility: visible;
+          contain-intrinsic-size: none;
+        } /* animated gradient text / buttons repaint every frame -> keep them static */
+        .hero-title,
+        .hero-subtitle-bold,
+        .project-title,
+        .about-intro-mobile,
+        .about-intro-desktop,
+        .services-title,
+        .projects-title,
+        .contact-heading,
+        .extra-title,
+        .gc-name,
+        .journey-title,
+        .btn-lime,
+        .contact-submit,
+        .gc-btn.fill,
+        .to-top,
+        .scroll-progress,
+        .navbar-logo .gradient-text__content,
+        .navbar-logo .gradient-text__content::before {
+          animation: none !important;
+        }
+        .jr-card {
+          -webkit-backdrop-filter: none;
+          backdrop-filter: none;
         }
       }
     </style>
@@ -3534,7 +3623,7 @@
           fill="none"
           stroke="currentColor"
           stroke-width="2"
-          style=""
+          style="display: none"
         >
           <path
             stroke-linecap="round"
@@ -3620,7 +3709,7 @@
         />
       </div>
     </section>
-    <script src="loader.js"></script>
+    <script src="loader.js?v=3"></script>
     <div id="mainContent" class="main-content">
       <section id="about" class="about">
         <div class="about-inner">
@@ -4683,24 +4772,27 @@
           r = document.documentElement,
           n =
             window.matchMedia &&
-            window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        function o(t, e, i) {
+            window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+          o =
+            window.matchMedia &&
+            window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
+        function l(t, e, i) {
           return Math.min(i, Math.max(e, t));
         }
-        function l(t, e) {
+        function c(t, e) {
           return ((t % e) + e) % e;
         }
-        function c(t) {
+        function d(t) {
           return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(2 - 2 * t, 3) / 2;
         }
-        function d(t, e, i) {
+        function u(t, e, i) {
           return [
             t[0] + (e[0] - t[0]) * i,
             t[1] + (e[1] - t[1]) * i,
             t[2] + (e[2] - t[2]) * i,
           ];
         }
-        function u(t, e) {
+        function p(t, e) {
           return (
             "rgba(" +
             Math.round(t[0]) +
@@ -4709,12 +4801,12 @@
             "," +
             Math.round(t[2]) +
             "," +
-            o(e, 0, 1).toFixed(3) +
+            l(e, 0, 1).toFixed(3) +
             ")"
           );
         }
-        var p = document.createElement("canvas").getContext("2d"),
-          f = {
+        var f = document.createElement("canvas").getContext("2d"),
+          m = {
             light: !1,
             rgb: [224, 175, 34],
             sprite: null,
@@ -4722,9 +4814,9 @@
             alpha: 0.24,
           };
         function v(t) {
-          if (!p) return h;
-          ((p.fillStyle = "#000000"), (p.fillStyle = t));
-          var e = String(p.fillStyle);
+          if (!f) return h;
+          ((f.fillStyle = "#000000"), (f.fillStyle = t));
+          var e = String(f.fillStyle);
           if ("#" === e.charAt(0)) {
             var i = parseInt(e.slice(1, 7), 16);
             return [(i >> 16) & 255, (i >> 8) & 255, 255 & i];
@@ -4742,74 +4834,74 @@
             "#ff6b6b",
             "#06b6d4",
           ].map(v),
-          m = [];
-        function g(t) {
-          return m[Math.floor(256 * l(t, 1)) % 256];
+          g = [];
+        function x(t) {
+          return g[Math.floor(256 * c(t, 1)) % 256];
         }
         !(function () {
           for (var t = b.length, e = 0; e < 256; e++) {
             var i = (e / 256) * t,
               a = Math.floor(i);
-            m.push(d(b[a % t], b[(a + 1) % t], i - a));
+            g.push(u(b[a % t], b[(a + 1) % t], i - a));
           }
         })();
         var y = [];
-        function x(t) {
+        function M(t) {
           var e = !!t;
-          t = t || f.rgb;
-          var i = 36 * (f.light ? 0.8 : 1),
+          t = t || m.rgb;
+          var i = 36 * (m.light ? 0.8 : 1),
             s = Math.ceil(2 * i),
             h = document.createElement("canvas");
           h.width = h.height = s;
           var r = h.getContext("2d"),
             n = r.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
           return (
-            n.addColorStop(0, u(t, 1)),
-            n.addColorStop(0.2, u(t, 0.4)),
-            n.addColorStop(0.5, u(t, 0.1)),
-            n.addColorStop(1, u(t, 0)),
+            n.addColorStop(0, p(t, 1)),
+            n.addColorStop(0.2, p(t, 0.4)),
+            n.addColorStop(0.5, p(t, 0.1)),
+            n.addColorStop(1, p(t, 0)),
             (r.fillStyle = n),
             r.fillRect(0, 0, s, s),
-            e || (f.sprite = h),
-            (f.reach = i),
-            (f.alpha = (f.light ? 0.5 : 0.4) * a),
+            e || (m.sprite = h),
+            (m.reach = i),
+            (m.alpha = (m.light ? 0.5 : 0.4) * a),
             h
           );
         }
-        function M() {
+        function w() {
           var t = getComputedStyle(r).getPropertyValue("--sb-color").trim();
           if (
-            ((f.light = "light" === r.getAttribute("data-theme")),
-            (f.rgb = v(t || "#e0af22")),
+            ((m.light = "light" === r.getAttribute("data-theme")),
+            (m.rgb = v(t || "#e0af22")),
             (y.length = 0),
             (i = null),
-            x(),
-            void 0 !== C)
+            M(),
+            void 0 !== P)
           )
-            for (var e = 0; e < C.length; e++)
-              C[e].rgb && (C[e].sprite = x(C[e].rgb));
-          L();
+            for (var e = 0; e < P.length; e++)
+              P[e].rgb && (P[e].sprite = M(P[e].rgb));
+          _();
         }
-        var w = { x: 0, y: 0, arc: !1 };
+        var T = { x: 0, y: 0, arc: !1 };
         function S(t, e) {
-          for (var i = l(e, t.total), a = 0; a < t.seg.length; a++) {
+          for (var i = c(e, t.total), a = 0; a < t.seg.length; a++) {
             var s = t.seg[a];
             if (s.l > 0 && i <= s.l) {
               if (null === s.a)
-                ((w.arc = !1), (w.x = s.x + s.dx * i), (w.y = s.y + s.dy * i));
+                ((T.arc = !1), (T.x = s.x + s.dx * i), (T.y = s.y + s.dy * i));
               else {
-                w.arc = !0;
+                T.arc = !0;
                 var h = s.a + i / t.r;
-                ((w.x = s.x + Math.cos(h) * t.r),
-                  (w.y = s.y + Math.sin(h) * t.r));
+                ((T.x = s.x + Math.cos(h) * t.r),
+                  (T.y = s.y + Math.sin(h) * t.r));
               }
-              return w;
+              return T;
             }
             i -= s.l;
           }
-          return w;
+          return T;
         }
-        function T(t) {
+        function C(t) {
           ((this.el = t),
             (this.c = document.createElement("canvas")),
             (this.c.className = "sb-light"),
@@ -4819,7 +4911,7 @@
             t.insertBefore(this.c, t.firstChild));
           var e = t.getAttribute("data-sb-color");
           ((this.rgb = e ? v(e) : null),
-            (this.sprite = this.rgb ? x(this.rgb) : null),
+            (this.sprite = this.rgb ? M(this.rgb) : null),
             (this.inset = parseFloat(t.getAttribute("data-sb-inset")) || 0),
             (this.w = 0),
             (this.h = 0),
@@ -4831,7 +4923,7 @@
             (this.acc = 0),
             (this.active = !0),
             (this.ready = !1),
-            (this.visible = !A),
+            (this.visible = !L),
             (this.phase = 0),
             (this.velocity = 0),
             (this.motion = 0),
@@ -4850,13 +4942,13 @@
             (this.hue = 0),
             (this.starHue = 0));
         }
-        ((T.prototype.measure = function () {
+        ((C.prototype.measure = function () {
           var t = this.el,
             e = getComputedStyle(t),
             i = this.T;
           ((this.w = t.offsetWidth),
             (this.h = t.offsetHeight),
-            (this.dpr = Math.min(window.devicePixelRatio || 1, 2)),
+            (this.dpr = Math.min(window.devicePixelRatio || 1, o ? 1.5 : 2)),
             (this.big = this.w * this.h > 6e4),
             (this.bleed = this.big ? 36 : 40),
             this.big && (this.dpr = 1));
@@ -4883,7 +4975,7 @@
           var n = parseFloat(e.borderTopLeftRadius) || 0;
           e.borderTopLeftRadius.indexOf("%") > -1 &&
             (n = (Math.min(this.w, this.h) * n) / 100);
-          var o = this.inset;
+          var l = this.inset;
           ((this.shape = (function (t, e, i) {
             for (
               var a = Math.max(0, Math.min(i, t / 2, e / 2)),
@@ -4908,16 +5000,16 @@
               o += n[l].l;
             return { r: a, seg: n, total: Math.max(1, o) };
           })(
-            Math.max(1, this.w - i - 2 * o),
-            Math.max(1, this.h - i - 2 * o),
-            Math.max(0, n - i / 2 - o),
+            Math.max(1, this.w - i - 2 * l),
+            Math.max(1, this.h - i - 2 * l),
+            Math.max(0, n - i / 2 - l),
           )),
             this.ready ||
               ((this.phase = Math.random() * this.shape.total),
               (this.ready = !0)),
             (this.dirty = !1));
         }),
-          (T.prototype.update = function (t) {
+          (C.prototype.update = function (t) {
             var e = this.shape.total,
               i = n ? 0 : (1 * e) / 3;
             ((this.flash *= Math.exp(-t / 0.22)),
@@ -4925,13 +5017,13 @@
                 (i - this.velocity) * (1 - Math.exp(-t / 0.45))));
             var a = 0;
             if (this.lap >= 0) {
-              var s = c(Math.min(1, this.lap / 0.9));
+              var s = d(Math.min(1, this.lap / 0.9));
               ((this.lap += t),
-                (a = (c(Math.min(1, this.lap / 0.9)) - s) * e * 1),
+                (a = (d(Math.min(1, this.lap / 0.9)) - s) * e * 1),
                 this.lap >= 0.9 && (this.lap = -1));
             }
             ((this.motion = this.velocity + a / t),
-              (this.phase = l(this.phase + this.velocity * t + a, e)));
+              (this.phase = c(this.phase + this.velocity * t + a, e)));
             for (var h = this.pulses.length - 1; h >= 0; h--)
               ((this.pulses[h].age += t),
                 this.pulses[h].age >= 0.65 && this.pulses.splice(h, 1));
@@ -4939,56 +5031,57 @@
               !n || this.lap >= 0 || this.flash > 0.01 || this.pulses.length > 0
             );
           }),
-          (T.prototype.trail = function (t, i, s, r, n) {
+          (C.prototype.trail = function (t, i, s, r, n) {
             if (!(i < 0.5 || r <= 0)) {
-              var o,
-                l = this.x,
-                c = this.shape,
-                p = f.light,
-                v = this.big ? 10 : 4;
-              S(c, t);
+              var l,
+                c = this.x,
+                d = this.shape,
+                f = m.light,
+                v = o ? 12 : this.big ? 10 : 4,
+                b = o ? 6 : 2;
+              S(d, t);
               for (
-                var b = w.x, m = w.y, y = 0, x = !0, M = 0;
-                y < i && M++ < 220;
+                var g = T.x, y = T.y, M = 0, w = !0, C = 0;
+                M < i && C++ < 220;
               ) {
-                var T = Math.min(w.arc ? 2 : v, i - y),
-                  C = y;
-                S(c, t - s * (y += T));
-                var P = 1 - (C + T / 2) / i,
-                  I = P * P * r;
-                o = this.gold ? e : g(this.starHue - ((C + T / 2) / i) * 0.28);
-                var A = p ? o : d(o, h, 0.65 * Math.pow(P, 6));
-                ((l.lineCap = n && x ? "round" : "butt"),
-                  (x = !1),
-                  (l.lineWidth = 5.6),
-                  (l.strokeStyle = u(A, I * (p ? 0.35 : 0.2) * a)),
-                  l.beginPath(),
-                  l.moveTo(b, m),
-                  l.lineTo(w.x, w.y),
-                  l.stroke(),
-                  (l.lineWidth = this.T),
-                  (l.strokeStyle = u(A, I)),
-                  l.beginPath(),
-                  l.moveTo(b, m),
-                  l.lineTo(w.x, w.y),
-                  l.stroke(),
-                  (b = w.x),
-                  (m = w.y));
+                var P = Math.min(T.arc ? b : v, i - M),
+                  E = M;
+                S(d, t - s * (M += P));
+                var I = 1 - (E + P / 2) / i,
+                  L = I * I * r;
+                l = this.gold ? e : x(this.starHue - ((E + P / 2) / i) * 0.28);
+                var A = f ? l : u(l, h, 0.65 * Math.pow(I, 6));
+                ((c.lineCap = n && w ? "round" : "butt"),
+                  (w = !1),
+                  (c.lineWidth = 5.6),
+                  (c.strokeStyle = p(A, L * (f ? 0.35 : 0.2) * a)),
+                  c.beginPath(),
+                  c.moveTo(g, y),
+                  c.lineTo(T.x, T.y),
+                  c.stroke(),
+                  (c.lineWidth = this.T),
+                  (c.strokeStyle = p(A, L)),
+                  c.beginPath(),
+                  c.moveTo(g, y),
+                  c.lineTo(T.x, T.y),
+                  c.stroke(),
+                  (g = T.x),
+                  (y = T.y));
               }
             }
           }),
-          (T.prototype.head = function (t, a, s) {
+          (C.prototype.head = function (t, a, s) {
             if (!(s <= 0)) {
               var h,
                 r,
-                n = f.reach;
-              ((this.x.globalAlpha = Math.min(1, f.alpha * s)),
+                n = m.reach;
+              ((this.x.globalAlpha = Math.min(1, m.alpha * s)),
                 this.x.drawImage(
                   this.gold
-                    ? i || (i = x(e))
+                    ? i || (i = M(e))
                     : ((h = this.starHue),
-                      (r = Math.floor(48 * l(h, 1))),
-                      y[r] || (y[r] = x(g(r / 48)))),
+                      (r = Math.floor(48 * c(h, 1))),
+                      y[r] || (y[r] = M(x(r / 48)))),
                   t - n,
                   a - n,
                   2 * n,
@@ -4997,11 +5090,11 @@
                 (this.x.globalAlpha = 1));
             }
           }),
-          (T.prototype.draw = function () {
+          (C.prototype.draw = function () {
             var t = this.x,
               i = this.shape,
               a = this.T,
-              s = f.light;
+              s = m.light;
             if (
               (t.setTransform(1, 0, 0, 1, 0, 0),
               t.clearRect(0, 0, this.c.width, this.c.height),
@@ -5011,21 +5104,21 @@
               (t.setTransform(this.dpr, 0, 0, this.dpr, h, h),
                 (t.globalCompositeOperation = s ? "source-over" : "lighter"),
                 (t.lineCap = "butt"),
-                (this.hue = l(performance.now() / 7e3 + this.seed, 1)),
+                (this.hue = c(performance.now() / 7e3 + this.seed, 1)),
                 (this.starHue = this.hue));
               var r,
                 n,
-                c = i.total,
-                d = c / 2,
-                p = Math.abs(this.motion),
-                v = this.motion >= 0 ? 1 : -1,
-                b = 0.6 * 3,
-                m = Math.min(p * b, 0.92 * d, 0.6 * c),
-                y = 1 + 0.6 * this.flash,
-                x = this.flash * (s ? 0.4 : 0.32);
-              x > 0.005 &&
+                o = i.total,
+                d = o / 2,
+                u = Math.abs(this.motion),
+                f = this.motion >= 0 ? 1 : -1,
+                v = 0.6 * 3,
+                b = Math.min(u * v, 0.92 * d, 0.6 * o),
+                g = 1 + 0.6 * this.flash,
+                y = this.flash * (s ? 0.4 : 0.32);
+              y > 0.005 &&
                 ((t.lineWidth = a + 1.2),
-                (t.strokeStyle = u(this.gold ? e : g(this.hue), x)),
+                (t.strokeStyle = p(this.gold ? e : x(this.hue), y)),
                 t.beginPath(),
                 t.roundRect
                   ? t.roundRect(
@@ -5042,14 +5135,14 @@
                       Math.max(1, this.h - a - 2 * this.inset),
                     ),
                 t.stroke());
-              var M = o(1 - p / Math.max(1, (c / 3) * 0.6), 0, 1),
-                T = (18.4 + 2 * a) * M;
+              var M = l(1 - u / Math.max(1, (o / 3) * 0.6), 0, 1),
+                w = (18.4 + 2 * a) * M;
               for (r = 0; r < 2; r++) {
                 var C = this.phase + r * d;
                 ((this.starHue = this.hue + (r / 2) * 0.5),
-                  this.trail(C, m, v, Math.min(1, y), !0),
+                  this.trail(C, b, f, Math.min(1, g), !0),
                   M > 0.01 &&
-                    (this.trail(C, T, 1, M, !1), this.trail(C, T, -1, M, !1)));
+                    (this.trail(C, w, 1, M, !1), this.trail(C, w, -1, M, !1)));
               }
               for (
                 this.starHue = this.hue, r = 0;
@@ -5057,77 +5150,77 @@
                 r++
               ) {
                 var P = this.pulses[r],
-                  I = Math.pow(1 - P.age / 0.65, 2),
-                  A = (c / 2) * (1 - Math.pow(1 - Math.min(1, P.age / 0.5), 2)),
-                  E = Math.min(A, 0.16 * c);
+                  E = Math.pow(1 - P.age / 0.65, 2),
+                  I = (o / 2) * (1 - Math.pow(1 - Math.min(1, P.age / 0.5), 2)),
+                  L = Math.min(I, 0.16 * o);
                 for (n = 1; n >= -1; n -= 2) {
-                  var L = P.origin + n * A;
-                  (this.trail(L, E, n, I, !0),
-                    S(i, L),
-                    this.head(w.x, w.y, 0.8 * I));
+                  var A = P.origin + n * I;
+                  (this.trail(A, L, n, E, !0),
+                    S(i, A),
+                    this.head(T.x, T.y, 0.8 * E));
                 }
               }
               for (r = 0; r < 2; r++)
                 ((this.starHue = this.hue + (r / 2) * 0.5),
                   S(i, this.phase + r * d),
-                  this.head(w.x, w.y, Math.min(1.3, y)));
+                  this.head(T.x, T.y, Math.min(1.3, g)));
             }
           }),
-          (T.prototype.pulse = function (t) {
+          (C.prototype.pulse = function (t) {
             (this.pulses.push({ origin: t, age: 0 }),
               this.pulses.length > 4 && this.pulses.shift(),
               (this.flash = 1),
-              L());
+              _());
           }));
-        var C = [],
-          P = 0,
+        var P = [],
+          E = 0,
           I = 0,
-          A =
+          L =
             "IntersectionObserver" in window
               ? new IntersectionObserver(function (t) {
                   (t.forEach(function (t) {
                     t.target.__sb && (t.target.__sb.visible = t.isIntersecting);
                   }),
-                    L());
+                    _());
                 })
               : null,
-          E = new ResizeObserver(function (t) {
+          A = new ResizeObserver(function (t) {
             (t.forEach(function (t) {
               t.target.__sb && (t.target.__sb.dirty = !0);
             }),
-              L());
+              _());
           });
-        function L() {
-          P || ((I = performance.now()), (P = requestAnimationFrame(_)));
+        function _() {
+          E || ((I = performance.now()), (E = requestAnimationFrame(R)));
         }
-        function _(t) {
-          if (((P = 0), !document.hidden)) {
+        function R(t) {
+          if (((E = 0), !(document.hidden || (o && O)))) {
             var e = Math.min(0.05, Math.max(0.001, (t - I) / 1e3));
             I = t;
-            for (var i = !1, a = C.length - 1; a >= 0; a--) {
-              var s = C[a];
+            for (var i = !1, a = P.length - 1; a >= 0; a--) {
+              var s = P[a];
               s.el.isConnected
                 ? s.visible &&
                   ((s.acc += e),
-                  s.big && s.acc < 0.032
+                  (s.big || o) && s.acc < 0.032
                     ? s.active && (i = !0)
                     : (s.dirty && s.measure(),
                       (s.active = s.update(Math.min(s.acc, 0.05))),
                       (s.acc = 0),
                       s.active && (i = !0),
                       s.draw()))
-                : (E.unobserve(s.el), A && A.unobserve(s.el), C.splice(a, 1));
+                : (A.unobserve(s.el), L && L.unobserve(s.el), P.splice(a, 1));
             }
-            i && (P = requestAnimationFrame(_));
+            i && (E = requestAnimationFrame(R));
           }
         }
-        function R(t) {
+        function F(t) {
           if (!t.__sb) {
-            var e = new T(t);
+            var e = new C(t);
             ((t.__sb = e),
-              C.push(e),
+              P.push(e),
               t.addEventListener("pointerenter", function () {
-                (!n && e.lap < 0 && (e.lap = 0), L());
+                (!n && e.lap < 0 && (e.lap = 0), _());
               }),
               t.addEventListener("pointerdown", function (i) {
                 if (e.shape && (0 === i.button || "mouse" !== i.pointerType)) {
@@ -5141,29 +5234,29 @@
                         n < t.seg.length;
                         n++
                       ) {
-                        var c = t.seg[n];
-                        if (c.l > 0) {
+                        var o = t.seg[n];
+                        if (o.l > 0) {
                           var d, u, p;
-                          if (null === c.a)
-                            ((d = o(
-                              (e - c.x) * c.dx + (i - c.y) * c.dy,
+                          if (null === o.a)
+                            ((d = l(
+                              (e - o.x) * o.dx + (i - o.y) * o.dy,
                               0,
-                              c.l,
+                              o.l,
                             )),
-                              (u = c.x + c.dx * d),
-                              (p = c.y + c.dy * d));
+                              (u = o.x + o.dx * d),
+                              (p = o.y + o.dy * d));
                           else {
-                            var f = l(Math.atan2(i - c.y, e - c.x) - c.a, s);
+                            var f = c(Math.atan2(i - o.y, e - o.x) - o.a, s);
                             (f > Math.PI / 2 &&
                               (f = f > 1.25 * Math.PI ? 0 : Math.PI / 2),
                               (d = f * t.r),
-                              (u = c.x + Math.cos(c.a + f) * t.r),
-                              (p = c.y + Math.sin(c.a + f) * t.r));
+                              (u = o.x + Math.cos(o.a + f) * t.r),
+                              (p = o.y + Math.sin(o.a + f) * t.r));
                           }
-                          var v = (e - u) * (e - u) + (i - p) * (i - p);
-                          v < a && ((a = v), (h = r + d));
+                          var m = (e - u) * (e - u) + (i - p) * (i - p);
+                          m < a && ((a = m), (h = r + d));
                         }
-                        r += c.l;
+                        r += o.l;
                       }
                       return h;
                     })(e.shape, h - e.T / 2 - e.inset, r - e.T / 2 - e.inset),
@@ -5178,20 +5271,20 @@
                 try {
                   i = t.matches(":focus-visible");
                 } catch (t) {}
-                (i && !n && e.lap < 0 && (e.lap = 0), L());
+                (i && !n && e.lap < 0 && (e.lap = 0), _());
               }),
-              E.observe(t),
-              A && A.observe(t),
-              L());
+              A.observe(t),
+              L && L.observe(t),
+              _());
           }
         }
-        function F() {
+        function H() {
           for (var e = document.querySelectorAll(t), i = 0; i < e.length; i++)
-            R(e[i]);
+            F(e[i]);
         }
-        var H = !1;
+        var k = !1;
         (new MutationObserver(function (e) {
-          if (!H)
+          if (!k)
             for (var i = 0; i < e.length; i++)
               for (var a = e[i].addedNodes, s = 0; s < a.length; s++) {
                 var h = a[s];
@@ -5202,24 +5295,38 @@
                   (h.matches(t) || h.querySelector(t))
                 )
                   return (
-                    (H = !0),
+                    (k = !0),
                     void setTimeout(function () {
-                      ((H = !1), F());
+                      ((k = !1), H());
                     }, 120)
                   );
               }
         }).observe(document.body, { childList: !0, subtree: !0 }),
-          new MutationObserver(M).observe(r, {
+          new MutationObserver(w).observe(r, {
             attributes: !0,
             attributeFilter: ["data-theme"],
           }),
           document.addEventListener("visibilitychange", function () {
-            document.hidden || L();
+            document.hidden || _();
           }),
-          M(),
-          F(),
-          window.addEventListener("load", F),
-          (window.StarBorder = { attach: R, scan: F }));
+          w(),
+          H(),
+          window.addEventListener("load", H));
+        var O = !1,
+          W = 0;
+        (o &&
+          window.addEventListener(
+            "scroll",
+            function () {
+              ((O = !0),
+                clearTimeout(W),
+                (W = setTimeout(function () {
+                  ((O = !1), _());
+                }, 140)));
+            },
+            { passive: !0 },
+          ),
+          (window.StarBorder = { attach: F, scan: H }));
       })();
     </script>
     <script>
