@@ -28,6 +28,14 @@
     <script src="orbit-images.js" defer="defer"></script>
     <script src="orbit-skills.js" defer="defer"></script>
     <script src="image-loop.js" defer="defer"></script>
+    <script>
+      if (window.matchMedia("(max-width: 767px)").matches) {
+        var s = document.createElement("script");
+        s.src = "spark.js";
+        s.defer = !0;
+        document.head.appendChild(s);
+      }
+    </script>
     <style>
       @font-face {
         font-family: PortfolioSerif;
