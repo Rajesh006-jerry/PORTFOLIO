@@ -3707,6 +3707,39 @@
           animation: none;
         }
       }
+
+      /* ===== Project labels: bold + golden ===== */
+      .project-desc .lbl {
+        font-weight: 900 !important;
+        color: #e0af22;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        -webkit-text-stroke: 0.6px currentColor;
+        text-shadow: 0 0 10px rgba(224, 175, 34, 0.35);
+        background: none !important;
+        padding: 0 !important;
+      }
+      html[data-theme="light"] .project-desc .lbl {
+        color: #a87400;
+        text-shadow: none;
+      }
+
+      /* ===== Navbar: taller + bolder ===== */
+      .navbar-links a {
+        font-weight: 900 !important;
+        font-size: 0.92rem;
+        letter-spacing: 0.12em;
+        -webkit-text-stroke: 0.4px currentColor;
+      }
+      .navbar-links .navbar-resume {
+        font-weight: 900 !important;
+        font-size: 0.85rem;
+        padding: 14px 24px;
+        -webkit-text-stroke: 0.4px currentColor;
+      }
+      .navbar-logo {
+        font-size: 1.5rem;
+      }
     </style>
   </head>
   <body>
@@ -4237,7 +4270,7 @@
             name: "CRM & Smart Quotation Management System",
             titleHTML: "Mini CRM",
             description:
-              "Stack: HTML5 , CSS , JS , localStorage.<br>•Target Users: Sales Executives, Sales Managers, Business Development Teams.<br>•Problem: Pricing errors, slow quotation preparation, and no visibility into quotation status.<br>•Solution: Built a full-stack CRM to manage customers, products, user counts, pricing rules, and quotation generation with authentication.<br>•Impact: Reduced quotation preparation time by automating pricing calculations and PDF export.",
+              " • Stack : HTML5 , CSS , JS , localStorage.<br>•Target Users: Sales Executives, Sales Managers, Business Development Teams.<br> • PROBLEM : Pricing errors, slow quotation preparation, and no visibility into quotation status.<br> • SOLUTION : Built a full-stack CRM to manage customers, products, user counts, pricing rules, and quotation generation with authentication.<br> • IMPACT : Reduced quotation preparation time by automating pricing calculations and PDF export.",
             image: "min.webp",
             demoLink: "https://rajesh006-jerry.github.io/Mini-CRM/Index.html",
             githubLink: "https://github.com/Rajesh006-jerry/Mini-CRM",
@@ -4246,7 +4279,7 @@
             name: "Employee Management System",
             titleHTML: "EMS ",
             description:
-              "Stack: HTML5, CSS, JavaScript, Canvas API, MediaDevices API, localStorage.<br>•Target Users: HR Managers, Department Admins, Employees.<br>•Problem: Manual attendance tracking, scattered HR records, and untracked employee requests.<br>•Solution: Built a role-based HRMS with webcam attendance, leave management, payroll, PDF payslips, analytics, and department-based ticketing.<br>•Impact: Centralized HR workflows, automated attendance sync with approved leaves, and streamlined department-wise ticket management.",
+              " • Stack : HTML5, CSS, JavaScript, Canvas API, MediaDevices API, localStorage.<br>•Target Users: HR Managers, Department Admins, Employees.<br> • PROBLEM : Manual attendance tracking, scattered HR records, and untracked employee requests.<br> • SOLUTION : Built a role-based HRMS with webcam attendance, leave management, payroll, PDF payslips, analytics, and department-based ticketing.<br> • IMPACT : Centralized HR workflows, automated attendance sync with approved leaves, and streamlined department-wise ticket management.",
             image: "ems.webp",
             demoLink:
               "https://rajesh006-jerry.github.io/Employee-management-system/Employee.html",
@@ -4257,7 +4290,7 @@
             name: "SoftMeet - Appointment Booking & Business Hub",
             titleHTML: "Appointment Booking Service",
             description:
-              "•Stack: HTML5, CSS3, JavaScript, localStorage, Font Awesome.<br>•Target Users: Clients, Sales Teams, Business Teams.<br>•Problem: Manual bookings, double-booked slots, and disconnected CRM leads.<br>•Solution: Built a responsive booking platform with live calendar, slot validation, service selection, booking management, and AI chatbot.<br>•Impact: Prevented booking conflicts and automatically converted confirmed appointments into CRM leads.",
+              " • Stack : HTML5, CSS3, JavaScript, localStorage, Font Awesome.<br>•Target Users: Clients, Sales Teams, Business Teams.<br> • PROBLEM : Manual bookings, double-booked slots, and disconnected CRM leads.<br> • SOLUTION : Built a responsive booking platform with live calendar, slot validation, service selection, booking management, and AI chatbot.<br> • IMPACT : Prevented booking conflicts and automatically converted confirmed appointments into CRM leads.",
             image: "abs.webp",
             demoLink:
               "https://rajesh006-jerry.github.io/Appoinment-booking-service/appoinment.html",
@@ -4268,7 +4301,7 @@
             name: "Emergency Medical Store",
             titleHTML: "Emergency Medical Store",
             description:
-              "Stack: HTML5 , CSS , JS , localStorage.<br>Target Users: Patients and families needing urgent medicines, and store admins managing stock and orders.<br>•Problem: Finding an open pharmacy, the right medicine, a doctor, or a way to alert family in an emergency is slow, and store owners lack simple stock and order tracking.<br>•Solution: Built a mobile-first web app with medicine ordering (cart, promo codes, COD/UPI), prescription upload, doctor booking, a GPS-based SOS alerting contacts via WhatsApp/SMS, and an admin dashboard for stock, orders, and prescriptions.<br>•Impact: Combined ordering, emergency alerts, doctor booking, and inventory management in one app, cutting the steps from “need help” to “help on the way.",
+              " • Stack : HTML5 , CSS , JS , localStorage.<br>Target Users: Patients and families needing urgent medicines, and store admins managing stock and orders.<br> • PROBLEM : Finding an open pharmacy, the right medicine, a doctor, or a way to alert family in an emergency is slow, and store owners lack simple stock and order tracking.<br> • SOLUTION : Built a mobile-first web app with medicine ordering (cart, promo codes, COD/UPI), prescription upload, doctor booking, a GPS-based SOS alerting contacts via WhatsApp/SMS, and an admin dashboard for stock, orders, and prescriptions.<br> • IMPACT : Combined ordering, emergency alerts, doctor booking, and inventory management in one app, cutting the steps from “need help” to “help on the way.",
             image: "Mediacal-e-commerce.webp",
             demoLink:
               "https://rajesh006-jerry.github.io/Emergency-Service/Emergency-Medical-Service.html",
@@ -4530,7 +4563,7 @@
         (document.getElementById("projectsList").innerHTML = projects
           .map(
             (e, t) =>
-              `\n      <div class="project-item ${t % 2 == 0 ? "" : "reverse"}">\n        <div class="project-image-col">\n          <div class="project-image-clip">\n            <img src="${e.image}" alt="${e.name}" class="project-image" width="1200" height="${"min.webp" === e.image ? 733 : 566}" loading="lazy" decoding="async" />\n          </div>\n        </div>\n        <div class="project-text-col">\n          <span class="project-number">0${t + 1}</span>\n          <h3 class="project-title">${e.titleHTML}</h3>\n          <p class="project-desc">${e.description}</p>\n          <div class="project-actions">\n            <a href="${e.demoLink}" target="_blank" rel="noopener noreferrer" class="btn-lime">\n              Live Demo\n              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-tiny">\n                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />\n              </svg>\n            </a>\n            <a href="${e.githubLink}" target="_blank" rel="noopener noreferrer" class="btn-outline">\n              GitHub\n              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>\n              </svg>\n            </a>\n          </div>\n        </div>\n      </div>\n    `,
+              `\n      <div class="project-item ${t % 2 == 0 ? "" : "reverse"}">\n        <div class="project-image-col">\n          <div class="project-image-clip">\n            <img src="${e.image}" alt="${e.name}" class="project-image" width="1200" height="${"min.webp" === e.image ? 733 : 566}" loading="lazy" decoding="async" />\n          </div>\n        </div>\n        <div class="project-text-col">\n          <span class="project-number">0${t + 1}</span>\n          <h3 class="project-title">${e.titleHTML}</h3>\n          <p class="project-desc">${e.description.replace(/•\s*/g, "").replace(/(Stack|Target Users|PROBLEM|SOLUTION|IMPACT)(\s*:)/g, '<span class="lbl">$1</span>$2')}</p>\n          <div class="project-actions">\n            <a href="${e.demoLink}" target="_blank" rel="noopener noreferrer" class="btn-lime">\n              Live Demo\n              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-tiny">\n                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />\n              </svg>\n            </a>\n            <a href="${e.githubLink}" target="_blank" rel="noopener noreferrer" class="btn-outline">\n              GitHub\n              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>\n              </svg>\n            </a>\n          </div>\n        </div>\n      </div>\n    `,
           )
           .join("")),
         document
