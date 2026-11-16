@@ -1534,7 +1534,7 @@ html[data-theme="light"]
 #highlights,
 #project,
 .projects-list {
-  content-visibility: auto;
+  content-visibility: visible;
   contain-intrinsic-size: auto 900px;
 }
 .contact-bg-video,
