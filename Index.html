@@ -3741,6 +3741,94 @@
         font-size: 1.5rem;
       }
     </style>
+    <style id="preload-all-sections">
+      /* Render every section up-front (no deferred rendering on scroll) */
+      #contact,
+      #highlights,
+      #project,
+      .projects-list {
+        content-visibility: visible !important;
+        contain-intrinsic-size: none !important;
+      }
+    </style>
+    <style id="fit-text-fix">
+      /* Section heading: one line, scaled to the screen width */
+      .journey-title {
+        white-space: nowrap;
+        font-size: clamp(1.6rem, 8.5vw, 5rem);
+        letter-spacing: -0.02em;
+        max-width: 100%;
+      }
+      /* Project text: comfortable size, no mid-word / forced breaks */
+      .project-title {
+        white-space: normal;
+        overflow-wrap: normal;
+        word-break: normal;
+        hyphens: none;
+        font-size: clamp(1.4rem, 6.2vw, 3.2rem);
+      }
+      .project-desc,
+      .project-desc .lbl {
+        overflow-wrap: normal;
+        word-break: normal;
+        hyphens: none;
+      }
+      @media (max-width: 767px) {
+        .project-title {
+          font-size: clamp(1.3rem, 6.5vw, 1.9rem);
+        }
+        .project-desc {
+          font-size: clamp(0.78rem, 3.4vw, 0.92rem);
+          line-height: 1.7;
+          letter-spacing: 0;
+        }
+        .project-desc .lbl {
+          letter-spacing: 0.02em;
+          -webkit-text-stroke: 0.3px currentColor;
+        }
+      }
+    </style>
+    <script id="preload-all-images">
+      /* Load every image as soon as the page opens, including ones the
+         scripts add later (projects, certificates). */
+      (function () {
+        function eager(img) {
+          if (img.tagName !== "IMG") return;
+          img.loading = "eager";
+          img.decoding = "async";
+          if (img.dataset && img.dataset.src && !img.src)
+            img.src = img.dataset.src;
+        }
+        function all(root) {
+          (root.querySelectorAll ? root.querySelectorAll("img") : []).forEach(
+            eager,
+          );
+        }
+        function run() {
+          all(document);
+        }
+        new MutationObserver(function (m) {
+          m.forEach(function (r) {
+            r.addedNodes.forEach(function (n) {
+              if (n.nodeType !== 1) return;
+              eager(n);
+              all(n);
+            });
+          });
+        }).observe(document.documentElement, {
+          childList: true,
+          subtree: true,
+        });
+        if (document.readyState === "loading")
+          document.addEventListener("DOMContentLoaded", run);
+        else run();
+        window.addEventListener("load", function () {
+          run();
+          var v = document.querySelector(".contact-bg-video");
+          if (v) v.preload = "auto";
+        });
+      })();
+    </script>
   </head>
   <body>
     <nav class="navbar" id="navbar">
@@ -3977,7 +4065,7 @@
               alt=""
               width="320"
               height="213"
-              loading="lazy"
+              loading="eager"
               decoding="async"
             />
           </span>
@@ -3990,7 +4078,7 @@
         <div class="projects-list" id="projectsList"></div>
       </div>
       <div id="contact" class="contact">
-        <video muted loop playsinline preload="none" class="contact-bg-video">
+        <video muted loop playsinline preload="auto" class="contact-bg-video">
           <source src="contact_bg_small.mp4" type="video/mp4" />
         </video>
         <div class="contact-overlay"></div>
@@ -4563,7 +4651,7 @@
         (document.getElementById("projectsList").innerHTML = projects
           .map(
             (e, t) =>
-              `\n      <div class="project-item ${t % 2 == 0 ? "" : "reverse"}">\n        <div class="project-image-col">\n          <div class="project-image-clip">\n            <img src="${e.image}" alt="${e.name}" class="project-image" width="1200" height="${"min.webp" === e.image ? 733 : 566}" loading="lazy" decoding="async" />\n          </div>\n        </div>\n        <div class="project-text-col">\n          <span class="project-number">0${t + 1}</span>\n          <h3 class="project-title">${e.titleHTML}</h3>\n          <p class="project-desc">${e.description.replace(/•\s*/g, "").replace(/(Stack|Target Users|PROBLEM|SOLUTION|IMPACT)(\s*:)/g, '<span class="lbl">$1</span>$2')}</p>\n          <div class="project-actions">\n            <a href="${e.demoLink}" target="_blank" rel="noopener noreferrer" class="btn-lime">\n              Live Demo\n              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-tiny">\n                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />\n              </svg>\n            </a>\n            <a href="${e.githubLink}" target="_blank" rel="noopener noreferrer" class="btn-outline">\n              GitHub\n              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>\n              </svg>\n            </a>\n          </div>\n        </div>\n      </div>\n    `,
+              `\n      <div class="project-item ${t % 2 == 0 ? "" : "reverse"}">\n        <div class="project-image-col">\n          <div class="project-image-clip">\n            <img src="${e.image}" alt="${e.name}" class="project-image" width="1200" height="${"min.webp" === e.image ? 733 : 566}" loading="eager" decoding="async" />\n          </div>\n        </div>\n        <div class="project-text-col">\n          <span class="project-number">0${t + 1}</span>\n          <h3 class="project-title">${e.titleHTML}</h3>\n          <p class="project-desc">${e.description.replace(/•\s*/g, "").replace(/(Stack|Target Users|PROBLEM|SOLUTION|IMPACT)(\s*:)/g, '<span class="lbl">$1</span>$2')}</p>\n          <div class="project-actions">\n            <a href="${e.demoLink}" target="_blank" rel="noopener noreferrer" class="btn-lime">\n              Live Demo\n              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="icon-tiny">\n                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />\n              </svg>\n            </a>\n            <a href="${e.githubLink}" target="_blank" rel="noopener noreferrer" class="btn-outline">\n              GitHub\n              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\n                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>\n              </svg>\n            </a>\n          </div>\n        </div>\n      </div>\n    `,
           )
           .join("")),
         document
@@ -5086,7 +5174,9 @@
             void 0 !== P)
           )
             for (var e = 0; e < P.length; e++)
-              P[e].rgb && (P[e].sprite = M(P[e].rgb));
+              (P[e].rgb && (P[e].sprite = M(P[e].rgb)),
+                (P[e].T = P[e].T0 * (m.light ? 1.9 : 1)),
+                (P[e].dirty = !0));
           _();
         }
         var T = { x: 0, y: 0, arc: !1 };
@@ -5140,11 +5230,12 @@
             (this.gold = t.matches(
               ".btn-lime,.contact-submit,.rc-btn.fill,.card-connect,.project-image-col,.ss-chip,.rc-seal-core,.card-logo",
             )),
-            (this.T = t.matches(
+            (this.T0 = t.matches(
               ".hero-icon-btn,.navbar-resume,.mobile-resume,.btn-outline,.to-top,.rc-btn.line,.ss-chip",
             )
               ? 2.6
               : 1.5),
+            (this.T = this.T0 * (m.light ? 1.9 : 1)),
             (this.seed = Math.random()),
             (this.hue = 0),
             (this.starHue = 0));
@@ -5401,7 +5492,7 @@
           E || ((I = performance.now()), (E = requestAnimationFrame(R)));
         }
         function R(t) {
-          if (((E = 0), !(document.hidden || (o && O)))) {
+          if (((E = 0), !document.hidden)) {
             var e = Math.min(0.05, Math.max(0.001, (t - I) / 1e3));
             I = t;
             for (var i = !1, a = P.length - 1; a >= 0; a--) {
@@ -5409,7 +5500,7 @@
               s.el.isConnected
                 ? s.visible &&
                   ((s.acc += e),
-                  (s.big || o) && s.acc < 0.032
+                  !1
                     ? s.active && (i = !0)
                     : (s.dirty && s.measure(),
                       (s.active = s.update(Math.min(s.acc, 0.05))),
