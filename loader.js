@@ -79,7 +79,7 @@
       var o = Math.min(64, n - c);
       c = n;
       var r = w() ? 100 : Math.min(92, f + 10);
-      ((r = Math.min(r, ((n - u) / 1900) * 100)),
+      ((r = Math.min(r, ((n - u) / 2900) * 100)),
         (m += (r - m) * (1 - Math.exp(-o / 260))) > 99.4 &&
           r >= 100 &&
           (m = 100),
