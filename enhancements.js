@@ -299,7 +299,7 @@ function rcQR(e) {
           h +
           '.webp" alt="Certificate ' +
           h +
-          '" width="1287" height="910" loading="lazy" decoding="async" draggable="false" /></div>';
+          '" width="1287" height="910" loading="eager" decoding="async" draggable="false" /></div>';
       var f = document.createElement("section");
       if (
         ((f.id = "highlights"),
