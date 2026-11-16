@@ -68,19 +68,36 @@ html[data-theme="light"] a.hero-icon-btn.sb.sb-multi::after {
   background: none !important;
 }
 
-/* 5. Hero ↗ (top-to-bottom) button: transparent background, no shadow */
+/* 5. Hero ↗ (top-to-bottom) button: transparent background, no shadow,
+      with a 1px golden border line (moving star still runs on top of it) */
 html a.hero-icon-btn,
 html a.hero-icon-btn:hover,
 html[data-theme="light"] a.hero-icon-btn,
 html[data-theme="light"] a.hero-icon-btn:hover {
   background: transparent !important;
-  border-color: transparent !important;
   box-shadow: none !important;
+}
+/* border: width stays 1px so the star-border script keeps working;
+   the .sb.sb-multi selectors are needed to beat the page's
+   ".sb.sb-multi { border-color: transparent !important }" rule */
+html a.hero-icon-btn.sb.sb-multi,
+html a.hero-icon-btn.sb.sb-multi:hover,
+html[data-theme="light"] a.hero-icon-btn.sb.sb-multi,
+html[data-theme="light"] a.hero-icon-btn.sb.sb-multi:hover {
+  border: 1px solid #e0af22 !important;
 }
 /* keep the arrow visible on hover (it used to turn dark/white on a filled button) */
 html a.hero-icon-btn:hover .hero-icon-arrow,
 html[data-theme="light"] a.hero-icon-btn:hover .hero-icon-arrow {
   color: var(--hero-btn-ink) !important;
+}
+
+/* 6. Loading bar: wider on desktop.
+      (index.html's inline CSS sets width: min(320px, 78vw), which overrides loader.css) */
+@media (min-width: 768px) {
+  html .hero-loadbar {
+    width: min(640px, 60vw);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
