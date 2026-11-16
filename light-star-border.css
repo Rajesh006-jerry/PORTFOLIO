@@ -1,0 +1,90 @@
+/* ===== Light theme: deep, dark multicolour star border ===== */
+@property --sb-ang {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes sb-spin {
+  to {
+    --sb-ang: 360deg;
+  }
+}
+
+/* 1. Static ring: deep, rich versions of the click-spark colours */
+html[data-theme="light"] .sb.sb-multi.sb-multi::after {
+  inset: -2px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--sb-ang),
+    #b91c1c,
+    #c2410c,
+    #b45309,
+    #15803d,
+    #0e7490,
+    #1d4ed8,
+    #6d28d9,
+    #be185d,
+    #b91c1c
+  );
+  animation: sb-spin 6s linear infinite;
+}
+
+/* 2. Moving star / trail (canvas): full strength, richer colour.
+      Bright head + dark tail is done in the star-border script (see JS edits). */
+html[data-theme="light"] .sb.sb-multi > .sb-light {
+  opacity: 1;
+  filter: saturate(1.6);
+}
+
+/* 3. Back-to-top button: transparent, no border line, only the star border.
+      NOTE: border-color is made transparent (width kept at 1px) because the
+      star-border script only draws the ring while the element has a border width. */
+html button.to-top,
+html button.to-top.sb,
+html button.to-top:hover,
+html[data-theme="light"] button.to-top,
+html[data-theme="light"] button.to-top:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html[data-theme="light"] button.to-top {
+  color: #8a5a00;
+}
+html[data-theme="light"] button.to-top:hover {
+  color: #6b4300;
+}
+
+/* 4. Remove the static multicolour ring line; keep ONLY the moving star.
+      Add more selectors here if you want it on other buttons too. */
+html button.to-top.sb.sb-multi::after,
+html a.hero-icon-btn.sb.sb-multi::after,
+html[data-theme="light"] button.to-top.sb.sb-multi::after,
+html[data-theme="light"] a.hero-icon-btn.sb.sb-multi::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+/* 5. Hero ↗ (top-to-bottom) button: transparent background, no shadow */
+html a.hero-icon-btn,
+html a.hero-icon-btn:hover,
+html[data-theme="light"] a.hero-icon-btn,
+html[data-theme="light"] a.hero-icon-btn:hover {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+/* keep the arrow visible on hover (it used to turn dark/white on a filled button) */
+html a.hero-icon-btn:hover .hero-icon-arrow,
+html[data-theme="light"] a.hero-icon-btn:hover .hero-icon-arrow {
+  color: var(--hero-btn-ink) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="light"] .sb.sb-multi.sb-multi::after {
+    animation: none;
+  }
+}
