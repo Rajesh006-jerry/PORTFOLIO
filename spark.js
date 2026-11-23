@@ -354,8 +354,13 @@
       if (bursts.length) raf = requestAnimationFrame(frame);
     }
 
-    function resolve() {
+    function resolve(over) {
       var o = SETTINGS;
+      if (over) {
+        o = {};
+        for (var a in SETTINGS) o[a] = SETTINGS[a];
+        for (var b in over) o[b] = over[b];
+      }
       var list = (o.colors[currentTheme()] || o.colors.dark).filter(Boolean);
       return {
         colors: list.length ? list : ["#ffffff"],
@@ -376,8 +381,8 @@
       };
     }
 
-    function spawn(cx, cy) {
-      var s = resolve();
+    function spawn(cx, cy, over) {
+      var s = resolve(over);
       if (s.disabled) return;
       var offset = Math.floor(Math.random() * s.colors.length);
       var full = s.spread >= 359.5;
@@ -479,41 +484,84 @@
     var down = null;
     var lastSpawn = { time: -1e9, x: 0, y: 0 };
 
-    // Scroll guard: any scroll (page or inner container) cancels the current
-    // touch, and a touch that begins right after a scroll (e.g. tapping to stop
-    // momentum scrolling) is ignored too.
-    var lastScroll = -1e9;
-    window.addEventListener(
-      "scroll",
-      function () {
-        lastScroll = performance.now();
-        if (down) down.cancelled = true;
-      },
-      { passive: true, capture: true },
-    );
     function makeDown(id, x, y) {
-      var now = performance.now();
-      return {
-        id: id,
-        x: x,
-        y: y,
-        t: now,
-        sx: window.scrollX,
-        sy: window.scrollY,
-        cancelled: now - lastScroll < 150,
-      };
+      return { id: id, x: x, y: y, t: performance.now(), cancelled: false };
     }
     function isTap(d, x, y) {
       var moved = Math.hypot(x - d.x, y - d.y);
       var held = performance.now() - d.t;
-      return (
-        !d.cancelled &&
-        moved < 12 &&
-        held < 700 &&
-        window.scrollX === d.sx &&
-        window.scrollY === d.sy
-      );
+      return !d.cancelled && moved < 12 && held < 700;
     }
+
+    // ---- Scroll / swipe spark trail ----------------------------------------
+    // While the finger drags (scrolls) the page, small sparks pop at the finger.
+    // During momentum scrolling (finger lifted) and wheel/trackpad scrolling,
+    // sparks keep popping at the last known pointer position.
+    var TRAIL = {
+      sparkCount: 6,
+      sparkSize: 12,
+      sparkRadius: 30,
+      sparkWidth: 2.5,
+      duration: 600,
+      ring: false,
+    };
+    var TRAIL_TOUCH_GAP = 70; // ms between sparks while dragging
+    var TRAIL_SCROLL_GAP = 110; // ms between sparks from scroll events
+    var lastX = window.innerWidth / 2;
+    var lastY = window.innerHeight / 2;
+    var touching = false;
+    var lastTrail = -1e9;
+
+    function trail(x, y, gap) {
+      var now = performance.now();
+      if (now - lastTrail < gap) return;
+      lastTrail = now;
+      spawn(x, y, TRAIL);
+    }
+
+    document.addEventListener(
+      "touchstart",
+      function (e) {
+        var t = e.touches[0];
+        if (!t) return;
+        touching = true;
+        lastX = t.clientX;
+        lastY = t.clientY;
+      },
+      { passive: true },
+    );
+    document.addEventListener(
+      "touchmove",
+      function (e) {
+        var t = e.touches[0];
+        if (!t) return;
+        lastX = t.clientX;
+        lastY = t.clientY;
+        trail(lastX, lastY, TRAIL_TOUCH_GAP);
+      },
+      { passive: true },
+    );
+    function touchDone() {
+      touching = false;
+    }
+    document.addEventListener("touchend", touchDone, { passive: true });
+    document.addEventListener("touchcancel", touchDone, { passive: true });
+    document.addEventListener(
+      "mousemove",
+      function (e) {
+        lastX = e.clientX;
+        lastY = e.clientY;
+      },
+      { passive: true },
+    );
+    // Scroll events (momentum scroll, wheel, trackpad, inner scroll containers)
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (!touching) trail(lastX, lastY, TRAIL_SCROLL_GAP);
+      },
+      { passive: true, capture: true },
+    );
     function fire(x, y) {
       var now = performance.now();
       if (
