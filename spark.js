@@ -1,4 +1,3 @@
-
 (function () {
   "use strict";
   if (window.ClickSpark) return;
@@ -26,7 +25,7 @@
     },
   };
 
-  // Phone / tablet (touch): multicolour Diwali-cracker burst
+  // Multicolour Diwali-cracker burst (now used on desktop AND touch devices)
   var CRACKER = {
     shape: "streak",
     sparkCount: 16,
@@ -62,10 +61,22 @@
       ],
     },
   };
+
+  // Apply the cracker burst on every device
+  for (var k in CRACKER) SETTINGS[k] = CRACKER[k];
+
+  // Optional: slightly smaller burst for precise cursors (desktop).
+  // Uncomment to use.
+  /*
   var coarse =
     window.matchMedia &&
     window.matchMedia("(pointer: coarse), (hover: none)").matches;
-  if (coarse) for (var k in CRACKER) SETTINGS[k] = CRACKER[k];
+  if (!coarse) {
+    SETTINGS.sparkRadius = 40;
+    SETTINGS.sparkCount = 14;
+    SETTINGS.sparkSize = 14;
+  }
+  */
 
   var EASINGS = {
     linear: function (t) {
