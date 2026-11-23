@@ -478,6 +478,42 @@
     // fixes iOS Safari, which never fires click on non-interactive elements.
     var down = null;
     var lastSpawn = { time: -1e9, x: 0, y: 0 };
+
+    // Scroll guard: any scroll (page or inner container) cancels the current
+    // touch, and a touch that begins right after a scroll (e.g. tapping to stop
+    // momentum scrolling) is ignored too.
+    var lastScroll = -1e9;
+    window.addEventListener(
+      "scroll",
+      function () {
+        lastScroll = performance.now();
+        if (down) down.cancelled = true;
+      },
+      { passive: true, capture: true },
+    );
+    function makeDown(id, x, y) {
+      var now = performance.now();
+      return {
+        id: id,
+        x: x,
+        y: y,
+        t: now,
+        sx: window.scrollX,
+        sy: window.scrollY,
+        cancelled: now - lastScroll < 150,
+      };
+    }
+    function isTap(d, x, y) {
+      var moved = Math.hypot(x - d.x, y - d.y);
+      var held = performance.now() - d.t;
+      return (
+        !d.cancelled &&
+        moved < 12 &&
+        held < 700 &&
+        window.scrollX === d.sx &&
+        window.scrollY === d.sy
+      );
+    }
     function fire(x, y) {
       var now = performance.now();
       if (
@@ -497,12 +533,17 @@
             if (e.button === 0) fire(e.clientX, e.clientY);
             return;
           }
-          down = {
-            id: e.pointerId,
-            x: e.clientX,
-            y: e.clientY,
-            t: performance.now(),
-          };
+          down = makeDown(e.pointerId, e.clientX, e.clientY);
+        },
+        { passive: true },
+      );
+      document.addEventListener(
+        "pointermove",
+        function (e) {
+          if (e.pointerType === "mouse" || !down || down.id !== e.pointerId)
+            return;
+          if (Math.hypot(e.clientX - down.x, e.clientY - down.y) >= 10)
+            down.cancelled = true;
         },
         { passive: true },
       );
@@ -511,10 +552,9 @@
         function (e) {
           if (e.pointerType === "mouse" || !down || down.id !== e.pointerId)
             return;
-          var moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
-          var held = performance.now() - down.t;
+          var d = down;
           down = null;
-          if (moved < 12 && held < 700) fire(e.clientX, e.clientY);
+          if (isTap(d, e.clientX, e.clientY)) fire(e.clientX, e.clientY);
         },
         { passive: true },
       );
@@ -531,7 +571,17 @@
         "touchstart",
         function (e) {
           var t = e.changedTouches[0];
-          down = { x: t.clientX, y: t.clientY, t: performance.now() };
+          down = makeDown(0, t.clientX, t.clientY);
+        },
+        { passive: true },
+      );
+      document.addEventListener(
+        "touchmove",
+        function (e) {
+          if (!down) return;
+          var t = e.changedTouches[0];
+          if (Math.hypot(t.clientX - down.x, t.clientY - down.y) >= 10)
+            down.cancelled = true;
         },
         { passive: true },
       );
@@ -540,10 +590,9 @@
         function (e) {
           if (!down) return;
           var t = e.changedTouches[0];
-          var moved = Math.hypot(t.clientX - down.x, t.clientY - down.y);
-          var held = performance.now() - down.t;
+          var d = down;
           down = null;
-          if (moved < 12 && held < 700) fire(t.clientX, t.clientY);
+          if (isTap(d, t.clientX, t.clientY)) fire(t.clientX, t.clientY);
         },
         { passive: true },
       );
