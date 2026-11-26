@@ -7,7 +7,7 @@
     sparkRadius: 30,
     sparkCount: 8,
     sparkWidth: 2,
-    duration: 500,
+    duration: 600,
     easing: "ease-out", // linear | ease-in | ease-out | ease-in-out | spring
     extraScale: 1,
     shape: "line", // line | streak | dot | star
