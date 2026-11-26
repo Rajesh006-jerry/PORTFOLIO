@@ -27,7 +27,7 @@
     <script src="orbit-skills.js?v=3" defer="defer"></script>
     <script src="image-loop.js?v=3" defer="defer"></script>
     <script src="spark.js?v=3" defer="defer"></script>
-    <script src="metallic-paint.js?v=3" defer="defer"></script>
+    <script src="metallic-paint.js" defer="defer"></script>
     <script>
       (function () {
         var mq = window.matchMedia("(max-width: 767px) and (pointer: coarse)"),
@@ -3791,6 +3791,17 @@
         }
       }
     </style>
+    <style>
+      /* Mobile: hero title stays on one line so it can match the load bar width */
+      @media (max-width: 767px) {
+        .hero-title {
+          white-space: nowrap;
+          overflow: visible;
+          text-align: center;
+          letter-spacing: -0.04em;
+        }
+      }
+    </style>
     <script id="preload-all-images">
       /* Load every image as soon as the page opens, including ones the
          scripts add later (projects, certificates). */
@@ -3830,6 +3841,69 @@
           var v = document.querySelector(".contact-bg-video");
           if (v) v.preload = "auto";
         });
+      })();
+    </script>
+    <script>
+      /* Mobile: make the hero title (RAJESH S -> PORTFOLIO) exactly as wide as the load bar */
+      (function () {
+        var mq = window.matchMedia("(max-width: 767px)");
+        var title = document.getElementById("heroTitle");
+        var bar = document.getElementById("heroLoadBar");
+        if (!title || !bar) return;
+
+        var probe = document.createElement("span");
+        probe.setAttribute("aria-hidden", "true");
+        probe.style.cssText =
+          "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;" +
+          "text-transform:uppercase;font-size:100px;line-height:1;";
+        document.body.appendChild(probe);
+
+        var busy = false;
+
+        function fit() {
+          if (busy) return;
+          if (!mq.matches) {
+            title.style.removeProperty("font-size");
+            return;
+          }
+          var cs = getComputedStyle(title);
+          probe.style.fontFamily = cs.fontFamily;
+          probe.style.fontWeight = cs.fontWeight;
+          probe.style.fontStyle = cs.fontStyle;
+          probe.style.letterSpacing = "-0.04em";
+          probe.textContent = title.textContent;
+
+          var textW = probe.getBoundingClientRect().width; /* width at 100px */
+          var barW = bar.getBoundingClientRect().width;
+          if (!textW || !barW) return;
+
+          var size =
+            (barW / textW) * 100 * 0.98; /* 0.98 = safety for italic overhang */
+          var prev = parseFloat(title.style.fontSize) || 0;
+          title.style.fontSize = size.toFixed(2) + "px";
+
+          /* let the hero layout script re-measure the new title height */
+          if (Math.abs(prev - size) > 0.5) {
+            busy = true;
+            window.dispatchEvent(new Event("resize"));
+            busy = false;
+          }
+        }
+
+        /* refit whenever the text changes (RAJESH S -> PORTFOLIO) */
+        new MutationObserver(fit).observe(title, {
+          childList: true,
+          characterData: true,
+          subtree: true,
+        });
+
+        window.addEventListener("resize", fit);
+        window.addEventListener("orientationchange", fit);
+        window.addEventListener("load", fit);
+        if (mq.addEventListener) mq.addEventListener("change", fit);
+        if (document.fonts && document.fonts.ready)
+          document.fonts.ready.then(fit);
+        fit();
       })();
     </script>
   </head>
