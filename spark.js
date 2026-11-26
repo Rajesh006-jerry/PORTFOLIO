@@ -47,7 +47,7 @@
   // Phone / tablet (touch): multicolour Diwali-cracker burst
   var CRACKER = {
     shape: "streak",
-    sparkCount:4,
+    sparkCount:8,
     sparkSize: 16,
     sparkRadius: 52,
     sparkWidth: 3,
