@@ -29,14 +29,14 @@
   var CRACKER = {
     shape: "streak",
     sparkCount: 8,
-    sparkSize: 12,
-    sparkRadius: 34,
-    sparkWidth: 2.5,
-    duration: 600,
+    sparkSize: 16,
+    sparkRadius: 52,
+    sparkWidth: 3,
+    duration: 800,
     easing: "ease-out",
-    randomness: 0.4,
-    gravity: 0.2,
-    glow: 0.6,
+    randomness: 0.55,
+    gravity: 0.35,
+    glow: 1,
     ring: true,
     colors: {
       dark: [
