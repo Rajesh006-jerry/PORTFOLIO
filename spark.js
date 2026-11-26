@@ -20,16 +20,34 @@
     ring: false,
     disabled: false,
     zIndex: 9999,
-    colors: {
-      dark: ["#e6b93c", "#fff3c4"],
-      light: ["#c9971a"],
+     colors: {
+      dark: [
+        "#ff3b30",
+        "#ff9500",
+        "#ffd60a",
+        "#34c759",
+        "#00e5ff",
+        "#0a84ff",
+        "#bf5af2",
+        "#ff2d92",
+      ],
+      light: [
+        "#e0201a",
+        "#ff7a00",
+        "#e6a800",
+        "#16a34a",
+        "#0891b2",
+        "#2563eb",
+        "#9333ea",
+        "#db2777",
+      ],
     },
   };
 
   // Phone / tablet (touch): multicolour Diwali-cracker burst
   var CRACKER = {
     shape: "streak",
-    sparkCount: 8,
+    sparkCount:4,
     sparkSize: 16,
     sparkRadius: 52,
     sparkWidth: 3,
