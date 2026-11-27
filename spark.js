@@ -29,7 +29,7 @@
   var SETTINGS = {
     sparkSize: 40,
     sparkRadius: 30,
-    sparkCount: 12, // raised from 8 so more colours show per burst
+    sparkCount: 12,
     sparkWidth: 3,
     duration: 500,
     easing: "ease-out", // linear | ease-in | ease-out | ease-in-out | spring
@@ -46,7 +46,7 @@
     colors: MULTI,
   };
 
-  // Phone / tablet (touch): multicolour Diwali-cracker burst
+  // Multicolour Diwali-cracker burst
   var CRACKER = {
     shape: "streak",
     sparkCount: 16,
@@ -144,7 +144,6 @@
     var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var bursts = [];
     var raf = 0;
-    var lastPress = { time: -1e9, x: 0, y: 0 };
 
     var layer = document.createElement("div");
     layer.className = "click-spark-layer";
@@ -459,13 +458,29 @@
       if (!raf) raf = requestAnimationFrame(frame);
     }
 
-    // Mouse: fire instantly on pointerdown. Touch / pen: fire on pointerup when it
-    // was a tap (not a scroll/swipe). Using pointer events instead of "click"
-    // fixes iOS Safari, which never fires click on non-interactive elements.
+    // ------------------------------------------------------------------
+    // Input handling
+    //
+    // Mouse: fire instantly on pointerdown.
+    // Touch / pen: fire on pointerup if it was a tap (not a scroll/swipe).
+    //
+    // FIX for the "double burst on mobile" bug:
+    // After a tap, mobile browsers send a synthesized `click`. The keyboard
+    // fallback below used to treat it as a keyboard click and fired a second
+    // burst at the centre of the element. We now remember the time of the
+    // last pointer/touch/mouse interaction and ignore clicks that follow it.
+    // ------------------------------------------------------------------
     var down = null;
+    var lastPointerTime = -1e9; // last pointer / touch / mouse interaction
     var lastSpawn = { time: -1e9, x: 0, y: 0 };
+
+    function markPointer() {
+      lastPointerTime = performance.now();
+    }
+
     function fire(x, y) {
       var now = performance.now();
+      lastPointerTime = now;
       if (
         now - lastSpawn.time < 350 &&
         Math.hypot(x - lastSpawn.x, y - lastSpawn.y) < 24
@@ -479,6 +494,7 @@
       document.addEventListener(
         "pointerdown",
         function (e) {
+          markPointer();
           if (e.pointerType === "mouse") {
             if (e.button === 0) fire(e.clientX, e.clientY);
             return;
@@ -495,6 +511,7 @@
       document.addEventListener(
         "pointerup",
         function (e) {
+          markPointer();
           if (e.pointerType === "mouse" || !down || down.id !== e.pointerId)
             return;
           var moved = Math.hypot(e.clientX - down.x, e.clientY - down.y);
@@ -516,6 +533,7 @@
       document.addEventListener(
         "touchstart",
         function (e) {
+          markPointer();
           var t = e.changedTouches[0];
           down = { x: t.clientX, y: t.clientY, t: performance.now() };
         },
@@ -524,6 +542,7 @@
       document.addEventListener(
         "touchend",
         function (e) {
+          markPointer();
           if (!down) return;
           var t = e.changedTouches[0];
           var moved = Math.hypot(t.clientX - down.x, t.clientY - down.y);
@@ -536,17 +555,23 @@
       document.addEventListener(
         "mousedown",
         function (e) {
+          // Ignore emulated mouse events that follow a touch
+          if (performance.now() - lastPointerTime < 800) return;
           if (e.button === 0) fire(e.clientX, e.clientY);
         },
         { passive: true },
       );
     }
 
-    // Keyboard-activated clicks (no pointer position)
+    // Keyboard-activated clicks only (Enter / Space on a button, no pointer position)
     document.addEventListener(
       "click",
       function (e) {
         if (e.detail !== 0) return;
+        // Ignore synthesized clicks that follow a tap / mouse press
+        if (performance.now() - lastPointerTime < 800) return;
+        // Real pointer clicks report a pointerType; keyboard clicks don't
+        if (e.pointerType) return;
         var target = e.target instanceof Element ? e.target : document.body;
         var r = target.getBoundingClientRect();
         fire(r.left + r.width / 2, r.top + r.height / 2);
