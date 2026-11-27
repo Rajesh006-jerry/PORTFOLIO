@@ -29,8 +29,8 @@
   var CRACKER = {
     shape: "streak",
     sparkCount: 16,
-    sparkSize: 16,
-    sparkRadius: 52,
+    sparkSize: 32, // was 16 -> longer spark tail on mobile
+    sparkRadius: 60, // was 52 -> sparks travel a bit farther
     sparkWidth: 3,
     duration: 800,
     easing: "ease-out",
