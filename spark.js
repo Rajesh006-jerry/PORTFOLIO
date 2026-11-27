@@ -26,43 +26,26 @@
     ],
   };
 
+  // Multicolour Diwali-cracker burst, used on every device
   var SETTINGS = {
-    sparkSize: 30,
-    sparkRadius: 30,
-    sparkCount: 12, // raised from 8 so more colours show per burst
-    sparkWidth: 3,
-    duration: 400,
-    easing: "ease-out", // linear | ease-in | ease-out | ease-in-out | spring
-    extraScale: 1,
-    shape: "line", // line | streak | dot | star
-    randomness: 0.2,
-    gravity: 0.35,
-    spread: 360,
-    direction: 0,
-    glow: 5,
-    ring: false,
-    disabled: false,
-    zIndex: 9999,
-    colors: MULTI,
-  };
-
-  // Phone / tablet (touch): multicolour Diwali-cracker burst
-  var CRACKER = {
-    shape: "streak",
+    shape: "streak", // line | streak | dot | star
     sparkCount: 16,
     sparkSize: 60,
     sparkRadius: 52,
     sparkWidth: 3,
     duration: 600,
-    easing: "ease-out",
+    easing: "ease-out", // linear | ease-in | ease-out | ease-in-out | spring
+    extraScale: 1,
     randomness: 0.2,
     gravity: 0.35,
-    glow: 5,
+    spread: 360,
+    direction: 0,
+    glow: 5, // 0 - 5
     ring: true,
+    disabled: false,
+    zIndex: 9999,
     colors: MULTI,
   };
-  // Apply the cracker effect on every device (desktop + touch)
-  for (var k in CRACKER) SETTINGS[k] = CRACKER[k];
 
   var EASINGS = {
     linear: function (t) {
@@ -144,7 +127,6 @@
     var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var bursts = [];
     var raf = 0;
-    var lastPress = { time: -1e9, x: 0, y: 0 };
 
     var layer = document.createElement("div");
     layer.className = "click-spark-layer";
@@ -193,7 +175,7 @@
         );
         ctx.lineCap = "round";
         if (spark.glow > 0) {
-          ctx.globalAlpha = fade * 0.14 * spark.glow;
+          ctx.globalAlpha = clamp(fade * 0.14 * spark.glow, 0, 1);
           ctx.lineWidth = width * 4.5;
           ctx.beginPath();
           ctx.moveTo(a[0], a[1]);
@@ -247,7 +229,7 @@
           ctx.arc(hx, hy, width * 0.5 * sw, 0, Math.PI * 2);
           ctx.fill();
         };
-        if (spark.glow > 0) paint(3.2, fade * 0.16 * spark.glow);
+        if (spark.glow > 0) paint(3.2, clamp(fade * 0.16 * spark.glow, 0, 1));
         paint(1, fade);
         return true;
       }
@@ -258,7 +240,7 @@
         y = pos[1];
         var r = width * 1.25 * (1 - 0.5 * e);
         if (spark.glow > 0) {
-          ctx.globalAlpha = fade * 0.18 * spark.glow;
+          ctx.globalAlpha = clamp(fade * 0.18 * spark.glow, 0, 1);
           ctx.beginPath();
           ctx.arc(x, y, r * 2.6, 0, Math.PI * 2);
           ctx.fill();
@@ -281,7 +263,7 @@
       var rotation = spark.angle + spark.spin * p * Math.PI * 0.5;
       if (radius <= 0.05) return true;
       if (spark.glow > 0) {
-        ctx.globalAlpha = fade * 0.2 * spark.glow;
+        ctx.globalAlpha = clamp(fade * 0.2 * spark.glow, 0, 1);
         ctx.beginPath();
         ctx.arc(x, y, radius * 1.1, 0, Math.PI * 2);
         ctx.fill();
@@ -356,7 +338,7 @@
         gravity: Math.max(0, o.gravity),
         spread: clamp(o.spread, 0, 360),
         direction: o.direction,
-        glow: clamp(o.glow, 0, 1),
+        glow: clamp(o.glow, 0, 5),
         ring: o.ring,
         disabled: o.disabled,
       };
