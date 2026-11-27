@@ -2,69 +2,67 @@
   "use strict";
   if (window.ClickSpark) return;
 
+  // Shared multicolour palette (used on desktop AND touch devices)
+  var MULTI = {
+    dark: [
+      "#ff3b30",
+      "#ff9500",
+      "#ffd60a",
+      "#34c759",
+      "#00e5ff",
+      "#0a84ff",
+      "#bf5af2",
+      "#ff2d92",
+    ],
+    light: [
+      "#e0201a",
+      "#ff7a00",
+      "#e6a800",
+      "#16a34a",
+      "#0891b2",
+      "#2563eb",
+      "#9333ea",
+      "#db2777",
+    ],
+  };
+
   var SETTINGS = {
-    sparkSize: 14,
+    sparkSize: 40,
     sparkRadius: 30,
-    sparkCount: 8,
-    sparkWidth: 2,
+    sparkCount: 12, // raised from 8 so more colours show per burst
+    sparkWidth: 3,
     duration: 500,
     easing: "ease-out", // linear | ease-in | ease-out | ease-in-out | spring
     extraScale: 1,
     shape: "line", // line | streak | dot | star
     randomness: 0.2,
-    gravity: 0,
+    gravity: 0.35,
     spread: 360,
     direction: 0,
-    glow: 0,
+    glow: 5,
     ring: false,
     disabled: false,
     zIndex: 9999,
-    colors: {
-      dark: ["#e6b93c", "#fff3c4"],
-      light: ["#c9971a"],
-    },
+    colors: MULTI,
   };
 
   // Phone / tablet (touch): multicolour Diwali-cracker burst
   var CRACKER = {
     shape: "streak",
     sparkCount: 16,
-    sparkSize: 32, // was 16 -> longer spark tail on mobile
-    sparkRadius: 60, // was 52 -> sparks travel a bit farther
+    sparkSize: 60,
+    sparkRadius: 52,
     sparkWidth: 3,
-    duration: 800,
+    duration: 600,
     easing: "ease-out",
-    randomness: 0.55,
+    randomness: 0.2,
     gravity: 0.35,
-    glow: 1,
+    glow: 5,
     ring: true,
-    colors: {
-      dark: [
-        "#ff3b30",
-        "#ff9500",
-        "#ffd60a",
-        "#34c759",
-        "#00e5ff",
-        "#0a84ff",
-        "#bf5af2",
-        "#ff2d92",
-      ],
-      light: [
-        "#e0201a",
-        "#ff7a00",
-        "#e6a800",
-        "#16a34a",
-        "#0891b2",
-        "#2563eb",
-        "#9333ea",
-        "#db2777",
-      ],
-    },
+    colors: MULTI,
   };
-  var coarse =
-    window.matchMedia &&
-    window.matchMedia("(pointer: coarse), (hover: none)").matches;
-  if (coarse) for (var k in CRACKER) SETTINGS[k] = CRACKER[k];
+  // Apply the cracker effect on every device (desktop + touch)
+  for (var k in CRACKER) SETTINGS[k] = CRACKER[k];
 
   var EASINGS = {
     linear: function (t) {
