@@ -14,15 +14,16 @@
       "#bf5af2",
       "#ff2d92",
     ],
+    // Brighter, more saturated colours so sparks pop on white backgrounds
     light: [
-      "#e0201a",
-      "#ff7a00",
-      "#e6a800",
-      "#16a34a",
-      "#0891b2",
-      "#2563eb",
-      "#9333ea",
-      "#db2777",
+      "#ff2d1a",
+      "#ff8a00",
+      "#ffc400",
+      "#22d35a",
+      "#00c8f0",
+      "#1e7bff",
+      "#b84dff",
+      "#ff2d92",
     ],
   };
 
@@ -134,8 +135,13 @@
     return [0, 0, 0];
   }
 
+  // Follows the explicit data-theme attribute first; if it is missing
+  // (e.g. "system" mode), falls back to the OS colour-scheme setting.
   function currentTheme() {
-    return document.documentElement.getAttribute("data-theme") === "light"
+    var attr = document.documentElement.getAttribute("data-theme");
+    if (attr === "light" || attr === "dark") return attr;
+    return window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: light)").matches
       ? "light"
       : "dark";
   }
@@ -246,7 +252,8 @@
           ctx.arc(hx, hy, width * 0.5 * sw, 0, Math.PI * 2);
           ctx.fill();
         };
-        if (spark.glow > 0) paint(3.2, fade * 0.16 * spark.glow);
+        // Stronger glow (was 0.16) so sparks look brighter
+        if (spark.glow > 0) paint(3.2, fade * 0.28 * spark.glow);
         paint(1, fade);
         return true;
       }
@@ -437,10 +444,11 @@
       sparks.forEach(function (spark) {
         var c = channels(ctx, spark.color);
         spark.clear = "rgba(" + c[0] + ", " + c[1] + ", " + c[2] + ", 0)";
+        // Darker colours keep most of their glow (was 0.35 + 0.65 * luminance)
         spark.glow =
           s.glow *
-          (0.35 +
-            0.65 * ((0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255));
+          (0.75 +
+            0.25 * ((0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]) / 255));
       });
       bursts.push({
         x: cx,
