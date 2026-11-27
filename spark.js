@@ -27,11 +27,11 @@
   };
 
   var SETTINGS = {
-    sparkSize: 40,
+    sparkSize: 30,
     sparkRadius: 30,
     sparkCount: 12, // raised from 8 so more colours show per burst
     sparkWidth: 3,
-    duration: 500,
+    duration: 400,
     easing: "ease-out", // linear | ease-in | ease-out | ease-in-out | spring
     extraScale: 1,
     shape: "line", // line | streak | dot | star
